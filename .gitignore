@@ -1,0 +1,90 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Large data files and datasets
+synthetic_proposals/dataset/train/
+synthetic_proposals/dataset/dev/
+synthetic_proposals/dataset/test/
+synthetic_proposals/dataset/*.json
+synthetic_proposals/dataset/*.jsonl
+synthetic_proposals/dataset/*.log
+
+# Model files (pickles, checkpoints)
+*.pkl
+*.pickle
+*.pt
+*.pth
+*.h5
+*.ckpt
+*.safetensors
+model/
+models/
+checkpoints/
+
+# PDF files
+*.pdf
+
+# Log files
+*.log
+logs/
+
+# Cache
+.cache/
+*.cache
+
+# PyTorch
+.pytorch/
+
+# Hugging Face cache
+.huggingface/
+transformers_cache/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+

@@ -1,0 +1,34 @@
+forms:
+  non_collusion:
+    description: Non-Collusion Affidavit
+  insurance_ack:
+    description: Proof of Insurance Coverage
+  certification:
+    description: Certification Regarding Lobbying
+checklist_items:
+  - key: page_limit_required
+    label: Proposal must not exceed stated page limit.
+  - key: addenda_acknowledged
+    label: All addenda must be acknowledged on Appendix A.
+  - key: dbe_plan_included
+    label: DBE plan must demonstrate alignment with goal.
+  - key: resumes_required
+    label: Include resumes for all key staff in Appendix C.
+  - key: insurance_certificate
+    label: Provide insurance certificate meeting limits.
+banned_phrases:
+  - unconditional guarantee
+  - guaranteed savings
+  - risk-free delivery
+  - absolute assurance
+crosswalk_requirements:
+  - id: R1
+    description: Project understanding aligns with RFP Section 2.1.
+  - id: R2
+    description: Schedule approach responds to RFP Section 3.4.
+  - id: R3
+    description: Staffing plan corresponds to RFP Section 4.2.
+  - id: R4
+    description: Quality control addresses RFP Section 5.3.
+  - id: R5
+    description: DBE commitment documents RFP Section 6.1.
