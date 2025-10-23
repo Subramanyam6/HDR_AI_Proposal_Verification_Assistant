@@ -1,0 +1,155 @@
+metadata:
+  client: Gulf Coast Wetland Recovery Program
+  rfp_title: "Comprehensive Wetlands Restoration Planning and Monitoring"
+  rfp_number: GCWR-ENV-24-029
+  agency: Louisiana Wetlands Restoration Authority
+  agency_type: State
+  sector: Environmental
+  submission_date: 2024-09-05
+  prime_firm: Delta Eco Strategies
+  submission_method: Physical Delivery (Courier)
+  addenda:
+    - number: 1
+      title: Supplemental monitoring indicators
+      date: 2024-07-10
+    - number: 2
+      title: Revised budget ceiling guidance
+      date: 2024-07-22
+team:
+  pm:
+    name: Cameron Price
+    email: cameron.price@example.com
+    phone: 504-555-2109
+  quality_manager:
+    name: Elena Brooks
+    email: elena.brooks@example.com
+    phone: 985-555-9930
+  technical_leads:
+    - role: Ecological Restoration Lead
+      name: Jamal Whitney
+      bio: Designs adaptive management frameworks for coastal ecosystems.
+    - role: Monitoring and Data Lead
+      name: Lily Nguyen
+      bio: Oversees metrics, dashboards, and remote sensing integration.
+  subs:
+    - name: Bayou Cultural Alliance
+      role: Community engagement and traditional ecological knowledge
+      dbe: true
+      scope: Lead outreach, integrate traditional practices, and co-develop stewardship plans.
+    - name: Pelican Aerial Imaging
+      role: UAS data collection
+      dbe: false
+      scope: Capture multispectral imagery and support change detection analysis.
+work_approach:
+  executive_summary: >
+    Delta Eco Strategies will co-create a restoration roadmap grounded in community stewardship,
+    adaptive modeling, and resilient monitoring to accelerate wetland recovery across the Gulf Coast.
+  objectives:
+    - Prioritize restoration reaches delivering habitat and storm surge benefits.
+    - Implement long-term monitoring with remote sensing and field validation.
+    - Align implementation sequencing with state and federal funding windows.
+  constraints:
+    - Subsidence and relative sea level rise outpacing restoration.
+    - Interplay of multiple funding programs with distinct reporting.
+    - Seasonal weather disruptions affecting fieldwork.
+  success_factors:
+    - Deep community partnerships and capacity building.
+    - Data transparency with living dashboards and open datasets.
+    - Integrated sediment management and shoreline stabilization strategies.
+  elements:
+    - id: E1
+      title: Program Launch and Governance
+      context: Establish collaborative governance, work plan, and risk mitigation.
+      activities:
+        - Form stakeholder advisory council with coastal parishes and tribes.
+        - Finalize program charter, communications plan, and data governance.
+        - Implement risk register and adaptive management triggers.
+    - id: E2
+      title: Baseline Assessment and Opportunity Analysis
+      context: Evaluate current conditions, stressors, and opportunity zones.
+      activities:
+        - Synthesize existing studies, sediment budgets, and restoration projects.
+        - Deploy remote sensing baseline to map vegetation health and shoreline change.
+        - Prioritize opportunity areas using multi-criteria decision framework.
+    - id: E3
+      title: Restoration Strategy Development
+      context: Co-create restoration concepts, phasing, and funding alignment.
+      activities:
+        - Facilitate design studios integrating engineering and ecological teams.
+        - Model hydrodynamic and sediment transport scenarios.
+        - Draft implementation roadmap with funding and permitting guidance.
+    - id: E4
+      title: Monitoring and Adaptive Management
+      context: Implement metrics, data dashboards, and continuous improvement cycle.
+      activities:
+        - Establish indicators, thresholds, and reporting cadence.
+        - Train local stewards on monitoring protocols.
+        - Publish dashboard summarizing progress and lessons learned.
+schedule:
+  start_date: 2024-10-01
+  end_date: 2026-04-30
+  milestones:
+    - name: Program Kickoff
+      date: 2024-10-01
+      description: Governance charter ratified.
+    - name: Baseline Assessment Complete
+      date: 2025-02-28
+      description: Opportunity zones and data hub launched.
+    - name: Draft Restoration Strategy
+      date: 2025-09-30
+      description: Draft roadmap reviewed with stakeholders.
+    - name: Monitoring Framework Launch
+      date: 2026-03-15
+      description: Adaptive management plan finalized.
+  critical_path:
+    narrative: >
+      Opportunity analysis and permitting coordination dictate downstream phasing, requiring integrated data flows.
+    drivers:
+      - Field data availability across seasons.
+      - Agency review cycles for restoration concepts.
+      - Funding alignment with annual legislative sessions.
+  questions_due: 2024-07-30
+appendices:
+  A:
+    addenda_acknowledgment:
+      - addendum_number: 1
+        acknowledged: true
+        notes: Monitoring metrics incorporated into Work Approach E4.
+      - addendum_number: 2
+        acknowledged: true
+        notes: Budget controls reflected in implementation roadmap.
+  B:
+    dbe_plan:
+      - firm: Bayou Cultural Alliance
+        role: Community Engagement
+        commitment_percent: 18
+  C:
+    resumes:
+      - name: Cameron Price
+        role: Project Manager
+        years_experience: 19
+        summary: >
+          Leads integrated coastal resilience planning programs across the Gulf Coast.
+      - name: Jamal Whitney
+        role: Ecological Restoration Lead
+        years_experience: 15
+        summary: >
+          Develops ecosystem-based restoration strategies and sediment management solutions.
+  D:
+    forms:
+      non_collusion: true
+      insurance_ack: true
+      certification: true
+  E:
+    references:
+      - client: Gulf Defense Council
+        contact: Renee Alvarez
+        phone: 228-555-7644
+        email: renee.alvarez@example.com
+        description: Coastal Resilience Action Network Program
+checklist:
+  page_limit_required: 55
+  addenda_required: true
+  dbe_goal_percent: 22
+  resumes_required: true
+  insurance_certificate: true
