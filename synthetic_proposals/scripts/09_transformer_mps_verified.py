@@ -38,8 +38,8 @@ Target = Tuple[str, Callable[[Dict], int]]
 
 # Define targets matching existing baselines
 TARGETS: Sequence[Target] = (
-    ("crosswalk_error", lambda y: int(bool(y.get("crosswalk_errors")))),
-    ("banned_phrases", lambda y: int(bool(y.get("banned_phrases_found")))),
+    ("crosswalk_error", lambda y: int(len(y.get("crosswalk_errors", [])) > 0)),
+    ("banned_phrases", lambda y: int(len(y.get("banned_phrases_found", [])) > 0)),
     ("name_inconsistency", lambda y: int(not y.get("name_consistency_flag", True))),
     ("date_inconsistency", lambda y: int(not y.get("date_consistency_flag", True))),
 )
@@ -228,16 +228,16 @@ def main():
     parser = argparse.ArgumentParser(description="Train transformer model with MPS acceleration")
     parser.add_argument("--model-name", type=str, default="distilbert-base-uncased",
                         help="HuggingFace model name (default: distilbert-base-uncased)")
-    parser.add_argument("--batch-size", type=int, default=8,
-                        help="Batch size for training (default: 8)")
-    parser.add_argument("--gradient-accumulation-steps", type=int, default=4,
-                        help="Gradient accumulation steps (default: 4)")
+    parser.add_argument("--batch-size", type=int, default=4,
+                        help="Batch size for training (default: 4, optimized for MPS)")
+    parser.add_argument("--gradient-accumulation-steps", type=int, default=8,
+                        help="Gradient accumulation steps (default: 8, effective batch size: 32)")
     parser.add_argument("--learning-rate", type=float, default=2e-5,
-                        help="Learning rate (default: 2e-5)")
-    parser.add_argument("--max-epochs", type=int, default=10,
-                        help="Maximum number of epochs (default: 10)")
-    parser.add_argument("--early-stopping-patience", type=int, default=3,
-                        help="Early stopping patience (default: 3)")
+                        help="Learning rate for DistilBERT layers (default: 2e-5)")
+    parser.add_argument("--max-epochs", type=int, default=20,
+                        help="Maximum number of epochs (default: 20)")
+    parser.add_argument("--early-stopping-patience", type=int, default=7,
+                        help="Early stopping patience (default: 7)")
     parser.add_argument("--max-length", type=int, default=512,
                         help="Maximum sequence length (default: 512)")
     parser.add_argument("--use-compile", action="store_true",
@@ -357,12 +357,27 @@ def main():
     for j, (name, _) in enumerate(TARGETS):
         print(f"  {name:20s}: {int(pos_counts[j]):3d}/{len(train_dataset)} (weight: {pos_weight[j].item():.2f})")
     
-    # Setup optimizer and scheduler
+    # Setup optimizer and scheduler with DISCRIMINATIVE LEARNING RATES
+    # Critical: Classifier needs 100x higher LR than pretrained DistilBERT (amplified)
     total_steps = len(train_loader) * args.max_epochs // args.gradient_accumulation_steps
     warmup_steps = int(0.1 * total_steps)
     
-    optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=0.01)
+    # Use different learning rates for pretrained vs new classifier
+    classifier_lr = args.learning_rate * 100  # 100x higher for classifier
+    optimizer = torch.optim.AdamW([
+        {'params': model.distilbert.parameters(), 'lr': args.learning_rate},
+        {'params': model.classifier.parameters(), 'lr': classifier_lr},
+        {'params': model.pre_classifier.parameters(), 'lr': classifier_lr}
+    ], weight_decay=0.01)
     scheduler = get_linear_schedule_with_warmup(optimizer, warmup_steps, total_steps)
+    
+    # DEBUG: Check learning rate calculation
+    print(f"DEBUG: args.learning_rate = {args.learning_rate}")
+    print(f"DEBUG: classifier_lr calculation = {args.learning_rate} * 100 = {classifier_lr}")
+
+    print(f"\nLearning rates:")
+    print(f"  DistilBERT layers: {args.learning_rate}")
+    print(f"  Classifier layer: {classifier_lr}")
     
     print(f"\nTotal training steps: {total_steps} (warmup: {warmup_steps})")
     
@@ -389,6 +404,13 @@ def main():
         
         samples_per_sec = len(train_dataset) / train_time
         print(f"  Train loss: {train_loss:.4f} | Time: {train_time:.1f}s | Speed: {samples_per_sec:.1f} samples/s")
+        
+        # Monitor classifier weights to ensure they're updating
+        classifier_weight_norm = model.classifier.weight.norm().item()
+        classifier_bias_norm = model.classifier.bias.norm().item()
+        print(f"  Classifier weight norm: {classifier_weight_norm:.4f} | Bias norm: {classifier_bias_norm:.4f}")
+        if epoch == 0 and classifier_bias_norm < 0.1:
+            print(f"  ⚠️  WARNING: Bias norm very small - classifier may not be learning!")
         
         # Evaluate on dev
         eval_start = time.time()
@@ -468,15 +490,25 @@ def main():
         print(f"    PRED: {pred_dict}")
         print()
     
+    # Save the trained model
+    print("\nSaving trained model...")
+    model_save_path = Path(__file__).resolve().parents[1] / "model" / "distilbert"
+    model_save_path.mkdir(parents=True, exist_ok=True)
+
+    model.save_pretrained(model_save_path)
+    tokenizer.save_pretrained(model_save_path)
+
+    print(f"Model saved to: {model_save_path}")
+    print(f"Files saved: {list(model_save_path.glob('*'))}")
+
     # Final MPS memory check
     if device.type == "mps":
         mem = get_mps_memory_allocated()
         if mem:
             print(f"\nFinal MPS Memory Usage: {mem:.2f} GB")
-    
+
     print("Done!")
 
 
 if __name__ == "__main__":
     main()
-
