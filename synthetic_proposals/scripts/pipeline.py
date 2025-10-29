@@ -229,14 +229,14 @@ def _generate_team(seed_team: Dict[str, Any], ctx: GenerationContext) -> Dict[st
     team["pm"] = pm
     team["quality_manager"] = qm
     team["pm_title"] = "Program Manager"
-    team["pm_summary"] = faker.sentence(nb_words=18)
+    team["pm_summary"] = faker.sentence(nb_words=6)
     team["qm_title"] = "Quality Assurance Manager"
-    team["qm_summary"] = faker.sentence(nb_words=18)
+    team["qm_summary"] = faker.sentence(nb_words=6)
     role_traits = ctx.dictionaries.get("people_roles", {})
     tech_leads_vocab = role_traits.get("technical_leads", [])
     resume_snippets = role_traits.get("resume_snippets", [])
     tech_leads: List[Dict[str, Any]] = []
-    lead_count = max(2, min(4, rng.randint(2, 5)))
+    lead_count = max(3, min(4, rng.randint(3, 4)))
     rng.shuffle(tech_leads_vocab)
     for idx in range(lead_count):
         trait = tech_leads_vocab[idx % len(tech_leads_vocab)] if tech_leads_vocab else f"Discipline Lead {idx+1}"
@@ -244,13 +244,13 @@ def _generate_team(seed_team: Dict[str, Any], ctx: GenerationContext) -> Dict[st
             {
                 "role": trait.title(),
                 "name": faker.name(),
-                "bio": resume_snippets[idx % len(resume_snippets)] if resume_snippets else faker.sentence(nb_words=16),
+                "bio": resume_snippets[idx % len(resume_snippets)] if resume_snippets else faker.sentence(nb_words=6),
             }
         )
     team["technical_leads"] = tech_leads
     support_titles = role_traits.get("support_titles", [])
     team["subs"] = []
-    sub_count = rng.randint(2, 4)
+    sub_count = rng.randint(3, 4)
     for _ in range(sub_count):
         company = faker.company()
         team["subs"].append(
@@ -258,7 +258,7 @@ def _generate_team(seed_team: Dict[str, Any], ctx: GenerationContext) -> Dict[st
                 "name": company,
                 "role": rng.choice(support_titles) if support_titles else "Specialty Support",
                 "dbe": rng.boolean(0.5),
-                "scope": faker.sentence(nb_words=14),
+                "scope": faker.sentence(nb_words=6),
             }
         )
     return team
@@ -269,26 +269,19 @@ def _generate_letter(metadata: Dict[str, Any], team: Dict[str, Any], ctx: Genera
     pm_name = team.get("pm", {}).get("name", "Project Manager")
     bodies = {
         "formal": [
-            f"{metadata.get('agency')} Procurement Committee,",
-            "We appreciate the opportunity to submit our proposal in response to the RFP noted above.",
-            "Our team offers an integrated approach that balances technical rigor, stakeholder partnerships, and proactive risk management to deliver this program on schedule.",
+            f"We submit our proposal for {metadata.get('project_name', 'the project')}.",
         ],
         "engineering": [
-            "With this transmittal we outline our technical roadmap and risk-informed delivery processes.",
-            "Our engineers have stitched insights from comparable assignments to anticipate utilities, permitting, and constructability hurdles early.",
-            "We look forward to workshops to validate assumptions, refine data inputs, and accelerate approvals.",
+            f"We submit our technical proposal for {metadata.get('project_name', 'the project')}.",
         ],
         "marketing": [
-            "We are energized to partner with your agency to accelerate transformational outcomes.",
-            "Our award-winning practitioners pair immersive stakeholder experiences with resilient design thinking.",
-            "Together, we can create lasting community benefits and deliver a hallmark program for the region.",
+            f"We submit our proposal for {metadata.get('project_name', 'the project')}.",
         ],
     }
     paragraphs = bodies.get(tone, bodies["formal"])
-    additional = faker.paragraph(nb_sentences=4)
     return {
         "tone": tone,
-        "body": paragraphs + [additional],
+        "body": paragraphs,
         "closing": "Respectfully submitted,",
         "signature_block": {
             "name": pm_name,
@@ -305,8 +298,9 @@ def _generate_qualifications(ctx: GenerationContext, sector: str) -> List[Dict[s
     slices = ctx.rng.sample(tasks, min(4, len(tasks))) if tasks else []
     for idx, entry in enumerate(slices):
         highlights = [
-            faker.sentence(nb_words=16),
-            faker.sentence(nb_words=14),
+            faker.sentence(nb_words=6),
+            faker.sentence(nb_words=6),
+            faker.sentence(nb_words=6),
         ]
         qualifications.append(
             {
@@ -319,8 +313,8 @@ def _generate_qualifications(ctx: GenerationContext, sector: str) -> List[Dict[s
         qualifications.append(
             {
                 "title": f"{sector} Leadership",
-                "description": faker.sentence(nb_words=18),
-                "highlights": [faker.sentence(nb_words=12)],
+                "description": faker.sentence(nb_words=6),
+                "highlights": [faker.sentence(nb_words=6), faker.sentence(nb_words=6), faker.sentence(nb_words=6)],
             }
         )
     return qualifications
@@ -330,12 +324,10 @@ def _generate_staffing_plan(team: Dict[str, Any], ctx: GenerationContext) -> Dic
     rng = ctx.rng
     faker = rng.faker
     overview = [
-        "Our staffing model blends strategic leadership with hands-on technical execution.",
-        "Dedicated discipline leads align with task order needs while maintaining surge capacity.",
+        "Experienced team.",
     ]
     availability = [
-        f"{team['pm']['name']} will dedicate {rng.randint(25, 45)}% of time during peak delivery to steering coordination.",
-        f"{team['quality_manager']['name']} manages QA/QC checkpoints aligned to submittal cadence.",
+        "Full time available.",
     ]
     resource_matrix: List[Dict[str, Any]] = [
         {"role": "Project Manager", "name": team["pm"]["name"], "allocation_percent": rng.randint(35, 50)},
@@ -351,12 +343,10 @@ def _generate_staffing_plan(team: Dict[str, Any], ctx: GenerationContext) -> Dic
 def _generate_subs_summary(team: Dict[str, Any], ctx: GenerationContext) -> Dict[str, Any]:
     faker = ctx.rng.faker
     approach = [
-        "Our subconsultant partners are embedded within workstreams to maintain accountability and responsiveness.",
-        "We maintain weekly integration huddles to align deliverables, resolve blockers, and track commitments.",
+        "Subconsultants support workstreams.",
     ]
     dbe_strategy = [
-        "DBE participation is front-loaded through early phase engagement and sustained through delivery controls.",
-        "Each DBE partner receives dedicated mentorship and access to digital collaboration platforms.",
+        "DBE partners get mentorship.",
     ]
     return {"approach": approach, "dbe_strategy": dbe_strategy}
 
@@ -371,25 +361,21 @@ def _generate_schedule(seed_schedule: Dict[str, Any], ctx: GenerationContext) ->
     milestones = schedule.get("milestones", [])
     if not milestones:
         milestones = [
-            {"name": "Project Kickoff", "date": str(start_dt), "description": "Launch workshop"},
-            {"name": "30 Percent Review", "date": str(start_dt + timedelta(days=120)), "description": "Interim review"},
-            {"name": "Final Delivery", "date": str(end_dt), "description": "Final report"},
+            {"name": "Kickoff", "date": str(start_dt), "description": "Start"},
+            {"name": "Delivery", "date": str(end_dt), "description": "End"},
         ]
     else:
         base_dates = [start_dt + timedelta(days=idx * 90) for idx in range(len(milestones))]
         for idx, milestone in enumerate(milestones):
             milestone["date"] = str(base_dates[idx])
     schedule["milestones"] = milestones
-    critical = schedule.get("critical_path", {})
-    if not critical:
-        critical = {
-            "narrative": "Permitting approvals and stakeholder decision cycles drive critical milestones.",
-            "drivers": [
-                "Sequenced agency approvals",
-                "Utility coordination deliverables",
-                "Seasonal field access windows",
-            ],
-        }
+    critical = {
+        "narrative": "Approvals drive schedule.",
+        "drivers": [
+            "Agency approvals",
+            "Coordination",
+        ],
+    }
     schedule["critical_path"] = critical
     schedule["questions_due"] = str(start_dt - timedelta(days=40))
     return schedule
@@ -423,7 +409,7 @@ def _generate_appendices(seed_appendices: Dict[str, Any], team: Dict[str, Any], 
                 "name": team["pm"]["name"],
                 "role": "Project Manager",
                 "years_experience": rng.randint(12, 22),
-                "summary": faker.sentence(nb_words=20),
+                "summary": faker.sentence(nb_words=6),
             }
         )
         resumes.append(
@@ -431,7 +417,7 @@ def _generate_appendices(seed_appendices: Dict[str, Any], team: Dict[str, Any], 
                 "name": team["quality_manager"]["name"],
                 "role": "Quality Manager",
                 "years_experience": rng.randint(10, 20),
-                "summary": faker.sentence(nb_words=18),
+                "summary": faker.sentence(nb_words=6),
             }
         )
         for lead in team.get("technical_leads", [])[:2]:
@@ -440,7 +426,7 @@ def _generate_appendices(seed_appendices: Dict[str, Any], team: Dict[str, Any], 
                     "name": lead["name"],
                     "role": lead["role"],
                     "years_experience": rng.randint(8, 18),
-                    "summary": lead.get("bio", faker.sentence(nb_words=16)),
+                    "summary": lead.get("bio", faker.sentence(nb_words=6)),
                 }
             )
     appendices.setdefault("C", {})["resumes"] = resumes
@@ -458,9 +444,9 @@ def _generate_appendices(seed_appendices: Dict[str, Any], team: Dict[str, Any], 
                 "contact": faker.name(),
                 "phone": common.random_phone(rng.random),
                 "email": f"{common.slugify(faker.name())}@example.com",
-                "description": faker.sentence(nb_words=10),
+                "description": faker.sentence(nb_words=6),
             }
-            for _ in range(3)
+            for _ in range(1)
         ]
     appendices.setdefault("E", {})["references"] = references
     return appendices
@@ -470,26 +456,25 @@ def _generate_work_approach(seed_work: Dict[str, Any], ctx: GenerationContext, s
     rng = ctx.rng
     faker = rng.faker
     work = common.safe_copy_dict(seed_work) if seed_work else {}
-    work["executive_summary"] = faker.paragraph(nb_sentences=4)
-    work["objectives"] = [faker.sentence(nb_words=16) for _ in range(3)]
-    work["constraints"] = [faker.sentence(nb_words=14) for _ in range(3)]
-    work["success_factors"] = [faker.sentence(nb_words=13) for _ in range(3)]
+    work["executive_summary"] = faker.sentence(nb_words=6)
+    work["objectives"] = [faker.sentence(nb_words=6) for _ in range(1)]
+    work["constraints"] = [faker.sentence(nb_words=6) for _ in range(1)]
+    work["success_factors"] = [faker.sentence(nb_words=6) for _ in range(1)]
     elements = work.get("elements", [])
     if not elements:
         elements = []
-        for idx in range(4):
+        for idx in range(2):
             elements.append(
                 {
                     "id": f"E{idx+1}",
                     "title": f"{sector} Workstream {idx+1}",
-                    "context": faker.sentence(nb_words=15),
-                    "activities": [faker.sentence(nb_words=12) for _ in range(3)],
+                    "context": faker.sentence(nb_words=6),
                 }
             )
     else:
         for element in elements:
-            element["context"] = faker.sentence(nb_words=15)
-            element["activities"] = [faker.sentence(nb_words=12) for _ in range(3)]
+            element["context"] = faker.sentence(nb_words=6)
+            element["activities"] = []
     work["elements"] = elements
     return work
 
@@ -689,10 +674,8 @@ def _apply_mistakes(proposal: Dict[str, Any], meta: Dict[str, Any], mistakes: Se
 
     for mistake in mistakes:
         if mistake == "page_limit_violation":
-            extra_paragraphs = [faker.paragraph(nb_sentences=6) for _ in range(6)]
+            extra_paragraphs = [faker.paragraph(nb_sentences=1) for _ in range(1)]
             proposal.setdefault("letter", {}).setdefault("body", []).extend(extra_paragraphs)
-            for element in proposal.get("work_approach", {}).get("elements", []):
-                element.setdefault("activities", []).extend([faker.sentence(nb_words=18) for _ in range(2)])
             meta.setdefault("content", {})["page_limit_violation"] = True
 
         elif mistake == "missing_appendix_a":
