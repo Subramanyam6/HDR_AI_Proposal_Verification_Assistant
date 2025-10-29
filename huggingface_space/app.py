@@ -44,11 +44,11 @@ body,
 
 .gradio-container {
     margin: 0 auto !important;
-    padding: 2.75rem 1rem 3.5rem !important;
+    padding: 2.75rem 0 3.5rem !important;
 }
 
 .hero {
-    padding: 2.2rem 0 1.8rem;
+    padding: 0 0 1.8rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     margin-bottom: 1.5rem;
 }
@@ -59,7 +59,6 @@ body,
     letter-spacing: -0.035em;
     color: #ffffff;
     margin-bottom: 0.45rem;
-    padding: 0 1rem;
 }
 
 .hero-subtext {
@@ -67,13 +66,13 @@ body,
     color: rgba(255, 255, 255, 0.6);
     font-size: 0.98rem;
     line-height: 1.65;
-    padding: 0 1rem;
 }
 
 .shell {
-    max-width: 100%;
+    max-width: 1220px;
     margin: 0 auto;
     width: 100%;
+    padding: 0 1.75rem;
 }
 
 .top-nav {
@@ -122,7 +121,7 @@ body,
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem;
     margin-bottom: 1.75rem;
-    padding: 0 1rem;
+    margin-top: 2rem;
 }
 
 .metric-card {
@@ -152,7 +151,7 @@ body,
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
     gap: 1.75rem;
-    padding: 0 1rem;
+    margin-top: 2rem;
 }
 
 .panel {
@@ -194,6 +193,57 @@ body,
 .upload-box:hover {
     border-color: rgba(255, 255, 255, 0.34) !important;
     background: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Accordion styling with custom arrows */
+.gr-accordion,
+.gr-box.gr-accordion,
+details.gr-accordion {
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.gr-accordion summary,
+.gr-box summary,
+summary {
+    padding: 1rem !important;
+    cursor: pointer !important;
+    position: relative !important;
+}
+
+.gr-accordion summary::-webkit-details-marker,
+.gr-box summary::-webkit-details-marker,
+summary::-webkit-details-marker {
+    display: none !important;
+}
+
+.gr-accordion summary::marker,
+.gr-box summary::marker,
+summary::marker {
+    display: none !important;
+}
+
+/* Custom arrow for closed state */
+.gr-accordion summary::before,
+.gr-box summary::before {
+    content: "▶" !important;
+    position: absolute !important;
+    right: 1rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+    font-size: 0.75rem !important;
+    display: inline-block !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Arrow for open state */
+.gr-accordion[open] summary::before,
+.gr-box[open] summary::before,
+.gr-accordion.open summary::before,
+details.gr-accordion[open] summary::before {
+    content: "▼" !important;
 }
 
 .input-area textarea {
@@ -272,16 +322,17 @@ input,
 }
 
 .result-card {
-    min-height: 260px;
+    min-height: 0;
+    padding: 1.1rem !important;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+    display: flex;
+    flex-direction: column;
 }
 
-.comparison-box {
-    margin-top: 1.2rem;
-}
-
-.results-card {
-    margin-bottom: 1.2rem;
+.result-card .results-card {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
 }
 
 .results-card h4 {
@@ -296,12 +347,14 @@ input,
 .results-table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 .results-table th,
 .results-table td {
-    padding: 0.6rem 0.5rem;
+    padding: 0.5rem 0.35rem;
     text-align: left;
+    word-break: break-word;
 }
 
 .results-table thead tr {
@@ -458,7 +511,7 @@ import pickle
 import json
 from pathlib import Path
 import PyPDF2
-from typing import Dict, Tuple
+from typing import Dict
 import numpy as np
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
@@ -495,45 +548,9 @@ LABEL_DISPLAY = {
     "date_inconsistency": "Date Inconsistency"
 }
 
-SAMPLE_DATA_MARKDOWN = """\
-**Clean baseline (8,726 chars)** – minor scheduling drift only
-```
-=== LETTER ===
-With this transmittal we outline our technical roadmap and risk-informed delivery processes.
-Reference: WAT-8151-92A. Our engineers have stitched insights from comparable assignments to anticipate
-utilities, permitting, and constructability hurdles early. We look forward to workshops to validate
-assumptions, refine data inputs, and accelerate approvals.
+DIAGNOSTICS_HEADER_MD = "#### Model diagnostics"
+SCAN_SUMMARY_HEADER_MD = "#### Scan summary"
 
-=== QUALIFICATIONS ===
-Final Design and Documentation: 30/60/90 percent design submittals
-Construction Support Services: RFI and submittal responses
-Data Collection and Existing Conditions: Field survey memoranda
-Alternatives Development and Evaluation: Screening matrix
-
-=== STAFFING ===
-Project Manager: Kevin Vazquez (45% availability)
-Quality Manager: Robert Fisher (23% availability)
-
-=== SCHEDULE ===
-Period: 2024-04-13 to 2025-05-18
-Milestones: Program Kickoff, Hydraulics Model Calibration, Concept Alternatives Workshop, Final Roadmap Delivery
-```
-
-**Risk sample (8,468 chars)** – banned phrase + date mismatch
-```
-=== LETTER ===
-Florida Everglades Research Council Procurement Committee, Reference: ENV-2162-51A. We appreciate the
-opportunity to submit our proposal. Our team offers an integrated approach that balances technical rigor,
-stakeholder partnerships, and proactive risk management.
-
-=== WORK APPROACH ===
-This provides an guaranteed savings. Program Launch and Governance: Fast son reality appear performance seat again.
-
-=== SCHEDULE ===
-Period: 2024-03-08 to 2025-07-05
-Milestones: Program Kickoff, Baseline Assessment Complete, Draft Restoration Strategy, Monitoring Framework Launch
-```
-"""
 
 def extract_text_from_pdf(pdf_file) -> str:
     """Extract text from uploaded PDF file."""
@@ -640,38 +657,8 @@ def build_single_model_html(title: str, results: Dict[str, Dict[str, object]]) -
     )
 
 
-def build_comparison_html(distilbert_res: Dict[str, Dict[str, object]], tfidf_res: Dict[str, Dict[str, object]]) -> str:
-    rows = []
-    for label in LABEL_DISPLAY.values():
-        d = distilbert_res[label]
-        t = tfidf_res[label]
-        d_badge = "badge badge-issue" if d["is_issue"] else "badge badge-ok"
-        t_badge = "badge badge-issue" if t["is_issue"] else "badge badge-ok"
-        rows.append(
-            f"<tr>"
-            f"<td class='cell-label'>{label}</td>"
-            f"<td class='cell-status'><span class='{d_badge}'>{'❌' if d['is_issue'] else '✅'} {d['status']}</span><span class='confidence-chip'>{d['confidence']:.1f}%</span></td>"
-            f"<td class='cell-status'><span class='{t_badge}'>{'❌' if t['is_issue'] else '✅'} {t['status']}</span><span class='confidence-chip'>{t['confidence']:.1f}%</span></td>"
-            f"</tr>"
-        )
-    return (
-        "<div class='results-card'>"
-        "<h4>Model Comparison</h4>"
-        "<table class='results-table'>"
-        "<thead><tr><th>Check</th><th>DistilBERT</th><th>TF-IDF + LogReg</th></tr></thead>"
-        f"<tbody>{''.join(rows)}</tbody>"
-        "</table>"
-        "</div>"
-    )
-
-
-def verify_proposal(pdf_file, text_input) -> Tuple[str, str, str, str, str, str]:
-    """
-    Verify proposal compliance using all models.
-    Returns:
-        distilbert_results, tfidf_results, combined_results, status_text,
-        document_metadata_html, preview_text
-    """
+def verify_proposal(pdf_file, text_input):
+    """Run verification and return Gradio update payloads for UI components."""
     # Determine input source
     if text_input and text_input.strip():
         text = text_input.strip()
@@ -680,17 +667,29 @@ def verify_proposal(pdf_file, text_input) -> Tuple[str, str, str, str, str, str]
         text = extract_text_from_pdf(pdf_file)
         input_source = "PDF file"
         if text.startswith("Error"):
-            return "", "", "", f"<div class='status-box-text model-chip-alert'>❌ {text}</div>", "", ""
+            error_html = f"<div class='status-box-text model-chip-alert'>❌ {text}</div>"
+            return (
+                gr.update(value=DIAGNOSTICS_HEADER_MD, visible=False),
+                gr.update(value="", visible=False),
+                gr.update(value="", visible=False),
+                gr.update(value=SCAN_SUMMARY_HEADER_MD, visible=True),
+                gr.update(value=error_html, visible=True),
+                gr.update(value="", visible=False),
+            )
     else:
-        return "", "", "", "<div class='status-box-text model-chip-alert'>Please upload a PDF file or enter text</div>", "", ""
+        error_html = "<div class='status-box-text model-chip-alert'>⚠️ Please upload a PDF file or enter text</div>"
+        return (
+            gr.update(value=DIAGNOSTICS_HEADER_MD, visible=False),
+            gr.update(value="", visible=False),
+            gr.update(value="", visible=False),
+            gr.update(value=SCAN_SUMMARY_HEADER_MD, visible=True),
+            gr.update(value=error_html, visible=True),
+            gr.update(value="", visible=False),
+        )
     
     # Prepare snapshot for UI
     word_count = len(text.split())
     char_count = len(text)
-    preview_limit = 900
-    preview_text = text[:preview_limit].strip()
-    if len(text) > preview_limit:
-        preview_text += "…"
     document_info = (
         f"<div><span class='meta-label'>Source:</span> {input_source.title()} &middot; "
         f"<span class='meta-label'>Words:</span> {word_count:,} &middot; "
@@ -731,9 +730,14 @@ def verify_proposal(pdf_file, text_input) -> Tuple[str, str, str, str, str, str]
 
     distilbert_html = build_single_model_html("DistilBERT (Transformer)", distilbert_results)
     tfidf_html = build_single_model_html("TF-IDF + Logistic Regression", tfidf_results)
-    comparison_html = build_comparison_html(distilbert_results, tfidf_results)
-
-    return distilbert_html, tfidf_html, comparison_html, status_html, document_info, preview_text
+    return (
+        gr.update(value=DIAGNOSTICS_HEADER_MD, visible=True),
+        gr.update(value=distilbert_html, visible=True),
+        gr.update(value=tfidf_html, visible=True),
+        gr.update(value=SCAN_SUMMARY_HEADER_MD, visible=True),
+        gr.update(value=status_html, visible=True),
+        gr.update(value=document_info, visible=True),
+    )
 
 
 # Enhanced status handling function
@@ -743,23 +747,25 @@ def enhanced_status_update(pdf_file, text_input):
 
 
 # Build Gradio interface
-with gr.Blocks(css=custom_css) as demo:
-    gr.HTML(
-        """
-        <header class="top-nav">
-            <div class="top-nav-inner">
-                <div class="brand">HDR Navigator</div>
-                <nav class="top-nav-links">
-                    <a href="#" onclick="return false;">Dashboard</a>
-                    <a href="#" onclick="return false;">Models</a>
-                    <a href="#" onclick="return false;">Playbooks</a>
-                    <a href="#" onclick="return false;">Docs</a>
-                </nav>
-            </div>
-        </header>
-        """
-    )
-
+with gr.Blocks(css=custom_css, title="HDR Proposal Verification") as demo:
+    # Cache-busting meta tags
+    gr.HTML("""
+        <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
+        <script>
+            // Force reload on every page load
+            window.addEventListener('load', function() {
+                var links = document.querySelectorAll('link[rel="stylesheet"]');
+                links.forEach(function(link) {
+                    var href = link.href;
+                    var separator = href.indexOf('?') !== -1 ? '&' : '?';
+                    link.href = href + separator + 'v=' + new Date().getTime();
+                });
+            });
+        </script>
+    """)
+    
     with gr.Column(elem_classes=["shell"]):
         gr.HTML(
             """
@@ -808,45 +814,26 @@ with gr.Blocks(css=custom_css) as demo:
                     elem_classes=["input-area"],
                 )
                 verify_btn = gr.Button("Run verification", elem_classes=["primary-btn"])
-                with gr.Accordion("Sample data", open=False):
-                    gr.Markdown(SAMPLE_DATA_MARKDOWN)
 
             with gr.Column(elem_classes=["panel"]):
-                gr.Markdown("#### Scan summary", elem_classes=["section-title"])
-                status_output = gr.HTML(elem_classes=["status-box"])
-                document_meta = gr.HTML(elem_classes=["info-card"])
-                preview_box = gr.Textbox(
-                    label="Document preview",
-                    lines=12,
-                interactive=False,
-                    elem_classes=["preview-box"],
-                )
-
-                gr.Markdown("#### Model diagnostics", elem_classes=["section-title"])
+                diagnostics_header = gr.Markdown(DIAGNOSTICS_HEADER_MD, elem_classes=["section-title"], visible=False)
                 with gr.Row():
-                    distilbert_output = gr.HTML(elem_classes=["output-box", "result-card"])
-                    tfidf_output = gr.HTML(elem_classes=["output-box", "result-card"])
-                combined_output = gr.HTML(elem_classes=["output-box", "comparison-box"])
+                    distilbert_output = gr.HTML(elem_classes=["output-box", "result-card"], visible=False)
+                    tfidf_output = gr.HTML(elem_classes=["output-box", "result-card"], visible=False)
+                summary_header = gr.Markdown(SCAN_SUMMARY_HEADER_MD, elem_classes=["section-title"], visible=False)
+                status_output = gr.HTML(elem_classes=["status-box"], visible=False)
+                document_meta = gr.HTML(elem_classes=["info-card"], visible=False)
 
-    gr.HTML(f"""
-        <footer class='footer-card'>
-            <small>
-                <strong>DistilBERT:</strong> 66M parameters, GPU-optimized &nbsp;|&nbsp;
-                <strong>TF-IDF:</strong> {config['num_features']:,} features trained on {config['train_samples']:,} samples
-            </small>
-        </footer>
-        """)
-    
     verify_btn.click(
         fn=enhanced_status_update,
         inputs=[pdf_input, text_input],
         outputs=[
+            diagnostics_header,
             distilbert_output,
             tfidf_output,
-            combined_output,
+            summary_header,
             status_output,
             document_meta,
-            preview_box,
         ]
     )
 
