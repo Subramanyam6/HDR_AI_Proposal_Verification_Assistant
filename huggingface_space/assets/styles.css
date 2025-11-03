@@ -1,0 +1,342 @@
+/* ===== COLOR SYSTEM ===== */
+:root {
+  --background: #f9fafb;
+  --surface: #ffffff;
+  --surface-muted: #f3f4f6;
+  --foreground: #0f172a;
+  --muted: #94a3b8;
+  --muted-foreground: #475569;
+  --border: #e2e8f0;
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
+  --danger: #dc2626;
+  --radius: 0.75rem;
+}
+
+/* ===== BASE ===== */
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+.gradio-container {
+  width: 75% !important;
+  margin: 0 auto !important;
+  padding: 2.5rem 3vw !important;
+  background: var(--background) !important;
+  max-width: 1400px !important;
+}
+
+footer,
+[data-testid="block-info"] {
+  display: none !important;
+}
+
+/* ===== LAYOUT ===== */
+.hero-section {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.hero-title {
+  margin-bottom: 0.75rem !important;
+}
+
+.hero-title h1 {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.hero-subtitle p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 1rem;
+}
+
+.input-panel,
+.results-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+}
+
+.input-panel {
+  margin-right: 1.5rem;
+}
+
+.results-panel {
+  margin-left: 1.5rem;
+}
+
+h3 {
+  margin-top: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+}
+
+/* ===== BUTTONS ===== */
+#run-button {
+  margin-top: 1rem;
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+  color: var(--accent-foreground);
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 15px 25px rgba(37, 99, 235, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#run-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 28px rgba(37, 99, 235, 0.32);
+}
+
+#clear-button {
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted-foreground);
+  font-weight: 500;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+#clear-button:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: var(--danger);
+}
+
+/* ===== TEXT AREA ===== */
+#text-input .wrap {
+  background: var(--surface-muted) !important;
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--border) !important;
+}
+
+#text-input textarea {
+  background: var(--surface-muted) !important;
+  border: none !important;
+  padding: 1rem !important;
+  min-height: 220px !important;
+  color: var(--foreground) !important;
+  font-size: 0.95rem !important;
+  line-height: 1.5 !important;
+}
+
+#text-input textarea:focus {
+  outline: none !important;
+  background: var(--surface) !important;
+}
+
+/* ===== SAMPLE DROPDOWN ===== */
+
+#sample-dropdown select::-ms-value,
+#sample-dropdown select::-ms-input-placeholder,
+#sample-dropdown select::placeholder {
+  color: #6b7280 !important;
+}
+
+/* ===== PDF UPLOAD ===== */
+#pdf-upload {
+  padding: 0;
+}
+
+#pdf-upload label {
+  display: none !important;
+}
+
+#pdf-upload input[type="file"] {
+  display: none !important;
+}
+
+#pdf-upload gradio-file {
+  display: block;
+}
+
+#pdf-upload gradio-file::part(container) {
+  --neutral-50: #f8fafc;
+  --neutral-100: #f1f5f9;
+  --neutral-200: #e2e8f0;
+  --neutral-300: #cbd5f5;
+  --neutral-400: #c7d2fe;
+  --neutral-500: #93c5fd;
+  --neutral-600: #60a5fa;
+  --neutral-700: #2563eb;
+  --neutral-800: #1d4ed8;
+  --neutral-900: #1e3a8a;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 1.85rem;
+  box-shadow: 0 22px 40px rgba(37, 99, 235, 0.12);
+}
+
+#pdf-upload gradio-file::part(dropzone) {
+  border: 2px dashed #d4d8f5;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+#pdf-upload gradio-file::part(dropzone):hover {
+  border-color: #60a5fa;
+  box-shadow: 0 16px 32px rgba(96, 165, 250, 0.22);
+  transform: translateY(-1px);
+}
+
+#pdf-upload gradio-file::part(dropzone-icon) {
+  color: #2563eb;
+  width: 46px;
+  height: 46px;
+}
+
+#pdf-upload gradio-file::part(dropzone-text) {
+  color: var(--foreground);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+#pdf-upload gradio-file::part(dropzone-subtitle) {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+#pdf-upload gradio-file::part(dropzone-button) {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: var(--accent-foreground);
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.35rem;
+  font-weight: 600;
+  box-shadow: 0 14px 24px rgba(59, 130, 246, 0.28);
+}
+
+#pdf-upload gradio-file::part(dropzone-button):hover {
+  filter: brightness(0.95);
+}
+
+#pdf-upload gradio-file::part(file-list) {
+  background: #eef2ff;
+  border-radius: 1rem;
+  border: 1px solid #d4d8f5;
+  padding: 0.9rem;
+}
+
+#pdf-upload gradio-file::part(file-item) {
+  background: var(--surface);
+  border-radius: 0.9rem;
+  color: var(--foreground);
+  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.18);
+}
+
+#pdf-upload gradio-file::part(filename),
+#pdf-upload gradio-file::part(file-size) {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+#pdf-upload gradio-file::part(remove-button) {
+  background: rgba(248, 113, 113, 0.2);
+  color: #b91c1c;
+  border-radius: 999px;
+  border: none;
+  padding: 0.45rem 1rem;
+}
+
+#pdf-upload gradio-file::part(remove-button):hover {
+  background: rgba(248, 113, 113, 0.35);
+}
+
+/* ===== RESULTS TABLE ===== */
+#results-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 18px 30px rgba(15, 23, 42, 0.12);
+}
+
+#results-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  color: var(--foreground);
+}
+
+#results-table thead {
+  background: var(--surface-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+#results-table th,
+#results-table td {
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+#results-table th {
+  font-weight: 700;
+  text-align: left;
+  color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+#results-table td.status {
+  font-weight: 700;
+  text-align: center;
+}
+
+#results-table td,
+#results-table td.check-cell,
+#results-table td.status-cell {
+  color: #1f2937 !important;
+  opacity: 1 !important;
+}
+
+#results-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .gradio-container {
+    padding: 2rem 1.5rem !important;
+  }
+
+  .input-panel,
+  .results-panel {
+    margin: 0 0 1.5rem 0;
+  }
+}
