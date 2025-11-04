@@ -17,7 +17,7 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer
 BASE_DIR = Path(__file__).resolve().parent
 TFIDF_MODEL_DIR = BASE_DIR / "model"
 DISTILBERT_MODEL_DIR = TFIDF_MODEL_DIR / "distilbert"
-SYNTHETIC_DIR = BASE_DIR.parent / "synthetic_proposals"
+SYNTHETIC_DIR = BASE_DIR
 
 MODEL_THRESHOLDS = {"transformer": 0.50, "tfidf": 0.00}
 
