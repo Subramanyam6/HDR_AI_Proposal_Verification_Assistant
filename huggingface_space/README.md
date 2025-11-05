@@ -65,7 +65,7 @@ An AI-powered compliance verification system for HDR proposals, designed to auto
 
 ## Author
 
-**Subramanyam Duggirala**  
+**Subramanyam Duggirala**
 GitHub: [@Subramanyam6](https://github.com/Subramanyam6)
 
 ## License
@@ -75,4 +75,3 @@ MIT License - see the full repository for details.
 ---
 
 *Built with ❤️ for better proposal compliance*
-
