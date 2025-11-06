@@ -1,3 +1,14 @@
+---
+title: HDR Proposal Verification Assistant
+emoji: 🔍
+colorFrom: purple
+colorTo: blue
+sdk: gradio
+sdk_version: "4.44.1"
+app_file: huggingface_space/app.py
+pinned: false
+---
+
 # HDR AI Proposal Verification Assistant
 
 An AI-powered system for automated verification of HDR proposal compliance, detecting issues like page limit violations, banned phrases, inconsistencies, and structural errors.
