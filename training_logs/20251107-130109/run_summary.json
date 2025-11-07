@@ -1,0 +1,55 @@
+{
+  "timestamp_utc": "2025-11-07T13:01:09.266840+00:00",
+  "notes": "",
+  "log_directory": "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/training_logs/20251107-130109",
+  "steps": [
+    {
+      "name": "naive_bayes",
+      "command": [
+        "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/.venv/bin/python",
+        "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/synthetic_proposals/scripts/07_baseline_ml.py"
+      ],
+      "log_path": "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/training_logs/20251107-130109/01_naive_bayes.log",
+      "started": "2025-11-07T13:01:09.266877+00:00",
+      "finished": "2025-11-07T13:01:11.664062+00:00",
+      "return_code": 0,
+      "status": "success"
+    },
+    {
+      "name": "tfidf_logreg",
+      "command": [
+        "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/.venv/bin/python",
+        "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/synthetic_proposals/scripts/08_tfidf_logreg.py"
+      ],
+      "log_path": "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/training_logs/20251107-130109/02_tfidf_logreg.log",
+      "started": "2025-11-07T13:01:11.664299+00:00",
+      "finished": "2025-11-07T13:01:14.101978+00:00",
+      "return_code": 0,
+      "status": "success"
+    },
+    {
+      "name": "distilbert_transformer",
+      "command": [
+        "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/.venv/bin/python",
+        "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/synthetic_proposals/scripts/09_transformer_mps_verified.py",
+        "--learning-rate",
+        "5e-5",
+        "--batch-size",
+        "6",
+        "--gradient-accumulation-steps",
+        "4",
+        "--max-epochs",
+        "20",
+        "--early-stopping-patience",
+        "5",
+        "--grad-clip",
+        "1.0"
+      ],
+      "log_path": "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/training_logs/20251107-130109/03_distilbert_transformer.log",
+      "started": "2025-11-07T13:01:14.102211+00:00",
+      "finished": "2025-11-07T13:15:24.222777+00:00",
+      "return_code": 0,
+      "status": "success"
+    }
+  ]
+}

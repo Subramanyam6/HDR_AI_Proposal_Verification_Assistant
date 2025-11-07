@@ -39,7 +39,18 @@ def chunks_text(record: Dict) -> str:
 
 
 def tokenize(text: str) -> List[str]:
-    return [t.lower() for t in TOKEN_RE.findall(text)]
+    tokens = [t.lower() for t in TOKEN_RE.findall(text)]
+    normalized = []
+    for tok in tokens:
+        if tok.startswith('requirement'):
+            normalized.append('requirement_token')
+        elif tok in {'crosswalk','requirement','letter','work','approach'}:
+            normalized.append(tok)
+        elif tok in {'sarah','martinez','lee','davis','davies','jennifer','jones'}:
+            normalized.append('pm_name_token')
+        else:
+            normalized.append(tok)
+    return normalized
 
 
 Target = Tuple[str, Callable[[Dict], int]]

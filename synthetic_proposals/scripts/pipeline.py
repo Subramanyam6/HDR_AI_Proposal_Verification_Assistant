@@ -466,6 +466,7 @@ def _apply_base_narrative(proposal: Dict[str, Any], metadata: Dict[str, Any], te
     )
     work["success_factors"] = [
         "This provides an assurance that our delivery method avoids scope drift.",
+        "We avoid scope drift by using compliant language throughout our program plan.",
     ]
 
 
@@ -716,17 +717,24 @@ def _apply_mistakes(proposal: Dict[str, Any], meta: Dict[str, Any], mistakes: Se
             else:
                 variant = pm_name + " Jr."
 
+            sections = []
             letter = proposal.setdefault("letter", {})
             body = letter.setdefault("body", [])
-            for idx, paragraph in enumerate(body):
-                if pm_name in paragraph:
-                    body[idx] = paragraph.replace(pm_name, variant)
+            sections.append((body, True))
 
-            staffing = proposal.get("staffing_plan", {})
+            staffing = proposal.setdefault("staffing_plan", {})
             availability = staffing.setdefault("availability", [])
-            for idx, line in enumerate(availability):
-                if pm_name in line:
-                    availability[idx] = line.replace(pm_name, variant)
+            sections.append((availability, False))
+
+            change_options = [idx for idx, (lines, allow_multiple) in enumerate(sections) if any(pm_name in line for line in lines)]
+            rng.shuffle(change_options)
+            count = rng.randint(1, len(change_options))
+            for idx in change_options[:count]:
+                lines, _ = sections[idx]
+                for line_idx, line in enumerate(lines):
+                    if pm_name in line:
+                        lines[line_idx] = line.replace(pm_name, variant)
+                        break
 
             meta.setdefault("consistency", {})["pm_name_variant"] = {"original": pm_name, "variant": variant}
 
@@ -780,8 +788,8 @@ def _apply_mistakes(proposal: Dict[str, Any], meta: Dict[str, Any], mistakes: Se
                 phrase = rng.choice(banned_phrases)
                 work = proposal.setdefault("work_approach", {})
                 success_factors = work.setdefault("success_factors", [])
-                if success_factors:
-                    success_factors[0] = f"This provides an {phrase} that our delivery method avoids scope drift."
+                if len(success_factors) >= 2:
+                    success_factors[1] = f"This provides an {phrase} and must be replaced with compliant language."
                 meta.setdefault("content", {}).setdefault("banned_phrases", []).append(
                     {"phrase": phrase, "section": "work_approach"}
                 )
