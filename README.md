@@ -19,7 +19,8 @@ This project generates synthetic HDR-style proposals and trains machine learning
 - Crosswalk errors
 - Banned phrases
 - Name inconsistencies
-- Date inconsistencies
+
+The UI also runs a **rule-based date inconsistency check** that compares the anticipated submission date sentence against the signed/ sealed sentence.
 
 ## Project Structure
 
@@ -118,4 +119,3 @@ MIT License
 ## Author
 
 Subramanyam
-
