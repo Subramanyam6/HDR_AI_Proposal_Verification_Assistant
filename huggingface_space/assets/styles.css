@@ -487,8 +487,8 @@ h3 {
   border-collapse: collapse;
   font-size: 0.95rem;
   color: var(--foreground);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
+  border: 1px solid rgba(15, 23, 42, 0.6);
+  border-radius: 0;
   background: var(--surface);
   margin-bottom: 1.25rem;
 }
@@ -510,7 +510,7 @@ h3 {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   text-align: left;
-  border-bottom: 1px solid var(--panel-border);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.6);
 }
 
 .results-table tbody td {
@@ -519,13 +519,13 @@ h3 {
 }
 
 .results-table tbody tr + tr td {
-  border-top: 1px solid var(--panel-border);
+  border-top: 1px solid rgba(15, 23, 42, 0.6);
 }
 .ai-table {
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius);
-  background: var(--surface);
   margin-top: 1.25rem;
+  border: 1px solid rgba(15, 23, 42, 0.6);
+  border-radius: 0;
+  background: var(--surface);
   overflow: hidden;
 }
 
@@ -537,23 +537,24 @@ h3 {
   text-transform: uppercase;
   color: var(--muted-foreground);
   background: var(--surface-muted);
-  border-bottom: 1px solid var(--panel-border);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.6);
 }
 
 .ai-table__body {
   padding: 1rem;
+  min-height: 60px;
   font-size: 0.95rem;
-  line-height: 1.6;
+  line-height: 1.5;
   color: #1f2937;
 }
 
 .ai-table__body p {
-  margin: 0 0 0.75rem 0;
+  margin: 0;
 }
 
 .ai-placeholder {
-  color: #94a3b8;
-  font-style: italic;
+  color: var(--muted-foreground);
+  font-style: normal;
 }
 
 /* ===== RESPONSIVE ===== */
