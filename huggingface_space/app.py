@@ -671,45 +671,44 @@ with gr.Blocks(css=css_styles, title="HDR Proposal Verification") as demo:
 
     with gr.Row():
         with gr.Column(scale=1, elem_classes="input-panel"):
-            gr.Markdown("### INPUT")
+            gr.Markdown("### INPUT", elem_classes="panel-heading")
 
-            gr.Markdown("**Upload a Proposal PDF:**", elem_classes="input-label")
-            pdf_input = gr.File(
-                label="PDF file",
-                show_label=False,
-                file_types=[".pdf"],
-                elem_id="pdf-upload",
-                type="filepath",
-            )
+            with gr.Group(elem_classes="input-section"):
+                gr.HTML('<div class="input-section__header">UPLOAD A PROPOSAL PDF</div>')
+                with gr.Group(elem_classes="input-section__body"):
+                    pdf_input = gr.File(
+                        label="PDF file",
+                        show_label=False,
+                        file_types=[".pdf"],
+                        elem_id="pdf-upload",
+                        type="filepath",
+                    )
+                    pdf_sample_dropdown = gr.Dropdown(
+                        label="Select a PDF sample",
+                        choices=["Select a PDF sample..."] + (list(PDF_SAMPLE_LIBRARY.keys()) if PDF_SAMPLE_LIBRARY else []),
+                        value="Select a PDF sample...",
+                        elem_id="pdf-sample-dropdown",
+                        visible=bool(PDF_SAMPLE_LIBRARY),
+                    )
 
-            pdf_sample_dropdown = gr.Dropdown(
-                label="Load sample PDF",
-                choices=["Select a PDF sample..."] + (list(PDF_SAMPLE_LIBRARY.keys()) if PDF_SAMPLE_LIBRARY else []),
-                value="Select a PDF sample...",
-                elem_id="pdf-sample-dropdown",
-                visible=bool(PDF_SAMPLE_LIBRARY),
-            )
+            gr.HTML('<div class="input-separator"><span>OR</span></div>', elem_id="input-separator")
 
-            gr.HTML(
-                '<div class="input-separator"><span>OR</span></div>',
-                elem_id="input-separator",
-            )
-
-            gr.Markdown("**Copy-paste the proposal text:**", elem_classes="input-label")
-            text_input = gr.Textbox(
-                label="Or paste text",
-                lines=15,
-                placeholder="Paste proposal text here...",
-                elem_id="text-input"
-            )
-
-            sample_dropdown = gr.Dropdown(
-                label="Load sample text",
-                choices=["Select a text sample..."] + (list(SAMPLE_LIBRARY.keys()) if SAMPLE_LIBRARY else []),
-                value="Select a text sample...",
-                elem_id="sample-dropdown",
-                visible=bool(SAMPLE_LIBRARY),
-            )
+            with gr.Group(elem_classes="input-section"):
+                gr.HTML('<div class="input-section__header">COPY-PASTE THE PROPOSAL TEXT</div>')
+                with gr.Group(elem_classes="input-section__body"):
+                    text_input = gr.Textbox(
+                        label="Paste proposal text",
+                        lines=15,
+                        placeholder="Paste proposal text here...",
+                        elem_id="text-input"
+                    )
+                    sample_dropdown = gr.Dropdown(
+                        label="Select a text sample",
+                        choices=["Select a text sample..."] + (list(SAMPLE_LIBRARY.keys()) if SAMPLE_LIBRARY else []),
+                        value="Select a text sample...",
+                        elem_id="sample-dropdown",
+                        visible=bool(SAMPLE_LIBRARY),
+                    )
 
             run_button = gr.Button(
                 "Run Verification",
@@ -720,7 +719,7 @@ with gr.Blocks(css=css_styles, title="HDR Proposal Verification") as demo:
 
         # Right panel - Results
         with gr.Column(scale=1, elem_classes="results-panel"):
-            gr.Markdown("### RESULTS")
+            gr.Markdown("### RESULTS", elem_classes="panel-heading")
 
             results_table = gr.HTML(
                 value=get_empty_table_html(),
