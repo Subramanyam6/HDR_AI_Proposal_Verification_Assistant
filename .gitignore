@@ -88,3 +88,6 @@ transformers_cache/
 tmp/
 temp/
 
+# Debug and test scripts
+debug_scripts/
+
