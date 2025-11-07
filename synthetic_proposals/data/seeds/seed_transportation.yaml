@@ -1,0 +1,159 @@
+metadata:
+  client: Aurora Transit Expansion Program
+  rfp_title: "BRT Corridor Preliminary Engineering and Environmental Services"
+  rfp_number: AT-PE-24-011
+  agency: City of Aurora Transit Authority
+  agency_type: Transit
+  sector: Transportation
+  submission_date: 2024-06-01
+  prime_firm: Horizon Design Resources
+  submission_method: Electronic via Procurement Portal
+  addenda:
+    - number: 1
+      title: Clarification on station typologies
+      date: 2024-04-20
+    - number: 2
+      title: Updated DBE participation goal
+      date: 2024-05-05
+team:
+  pm:
+    name: Jordan McAllister
+    email: jordan.mcallister@example.com
+    phone: 303-555-1800
+  quality_manager:
+    name: Simone Everett
+    email: simone.everett@example.com
+    phone: 720-555-1210
+  technical_leads:
+    - role: Stations Design Lead
+      name: Priya Nayar
+      bio: Specializes in multimodal station integration and modular platforms.
+    - role: BRT Operations Lead
+      name: Mateo Ruiz
+      bio: Focused on service planning, headway optimization, and ITS.
+  subs:
+    - name: Riverbend Graphics
+      role: Visualization and outreach collateral
+      dbe: true
+      scope: Develop renderings, 3D flythroughs, and community outreach toolkits.
+    - name: Apex Geotechnical
+      role: Geotechnical investigations
+      dbe: false
+      scope: Subsurface explorations, borings, lab testing, and reporting.
+work_approach:
+  executive_summary: >
+    Horizon Design Resources offers a staged delivery approach focusing on rapid deployment,
+    stakeholder collaboration, and data-backed decision making to deliver a BRT corridor that
+    improves travel time reliability and enhances equitable access.
+  objectives:
+    - Establish a corridor design responsive to future fleet electrification.
+    - Achieve NEPA clearance within 18 months.
+    - Coordinate construction phasing to maintain interim bus service.
+  constraints:
+    - Constrained right-of-way along downtown segments.
+    - Utility conflicts with high pressure gas mains.
+    - Aggressive project delivery timeline tied to grant cycles.
+  success_factors:
+    - Early mitigation of high-risk intersections.
+    - Continuous quality oversight and documentation control.
+    - Transparent coordination with business stakeholders.
+  elements:
+    - id: E1
+      title: Project Management Framework
+      context: Establish governance, communication protocols, and stakeholder engagement cadence.
+      activities:
+        - Launch chartering workshop with agency leadership and partner cities.
+        - Build integrated schedule aligning permitting and environmental milestones.
+        - Implement risk register with monthly updates to steering committee.
+    - id: E2
+      title: Technical Studies and Alternatives
+      context: Conduct data-driven analysis to identify station typologies and transit priority treatments.
+      activities:
+        - Analyze existing ridership, dwell times, and queue jumps.
+        - Develop and evaluate alternative alignments with microsimulation models.
+        - Facilitate design charrette sessions to capture cross-department feedback.
+    - id: E3
+      title: Environmental Documentation
+      context: Support environmental review, mitigation strategies, and permitting submissions.
+      activities:
+        - Prepare technical memos for air quality, noise, and cultural resources.
+        - Coordinate Section 106 consultations with historic preservation offices.
+        - Draft Finding of No Significant Impact (FONSI) package.
+    - id: E4
+      title: Final Design Transition
+      context: Prepare 30 percent design package and transition to final engineering.
+      activities:
+        - Produce plan and profile sheets for corridor segments.
+        - Develop cost estimates and value engineering recommendations.
+        - Prepare implementation roadmap for design-build procurement.
+schedule:
+  start_date: 2024-07-01
+  end_date: 2026-01-30
+  milestones:
+    - name: Notice to Proceed
+      date: 2024-07-01
+      description: Contract execution and kickoff.
+    - name: 30 Percent Design Review
+      date: 2025-02-15
+      description: Combined plan review with City and FTA partners.
+    - name: NEPA Decision
+      date: 2025-11-01
+      description: Target decision document circulation.
+    - name: IFB Release
+      date: 2026-01-30
+      description: Bid package ready for release.
+  critical_path:
+    narrative: >
+      Environmental clearance drives the schedule, with permitting and utility coordination on the critical path.
+    drivers:
+      - Completion of technical studies for NEPA documentation.
+      - Third-party utility relocation agreements.
+      - Stakeholder approvals for station configurations.
+  questions_due: 2024-04-25
+appendices:
+  A:
+    addenda_acknowledgment:
+      - addendum_number: 1
+        acknowledged: true
+        notes: Included clarifications in Work Approach E2.
+      - addendum_number: 2
+        acknowledged: true
+        notes: Updated DBE goal reflected in Appendix B.
+  B:
+    dbe_plan:
+      - firm: Riverbend Graphics
+        role: Outreach and visualization
+        commitment_percent: 12
+      - firm: Cityside Survey
+        role: Survey and mapping
+        commitment_percent: 6
+  C:
+    resumes:
+      - name: Jordan McAllister
+        role: Project Manager
+        years_experience: 18
+        summary: >
+          Oversees multi-corridor transit planning programs and integrated ITS deployments.
+      - name: Priya Nayar
+        role: Stations Design Lead
+        years_experience: 14
+        summary: >
+          Leads transit architecture and equitable design for high-ridership corridors.
+  D:
+    forms:
+      non_collusion: true
+      insurance_ack: true
+      certification: true
+  E:
+    references:
+      - client: Denver Regional Transit District
+        contact: Alex Chen
+        phone: 720-555-4410
+        email: alex.chen@example.com
+        description: West Corridor BRT Implementation
+checklist:
+  page_limit_required: 45
+  addenda_required: true
+  dbe_goal_percent: 20
+  resumes_required: true
+  insurance_certificate: true

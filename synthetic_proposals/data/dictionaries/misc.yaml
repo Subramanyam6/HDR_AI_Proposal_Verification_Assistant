@@ -1,0 +1,30 @@
+submission_methods:
+  - Electronic via Procurement Portal
+  - Email Submission
+  - Physical Delivery (Courier)
+  - Hybrid: Electronic + Hard Copy
+  - Flash Drive with Signed Forms
+header_footer_variants:
+  - code: classic
+    description: Formal header with agency and project info, page number footer.
+  - code: modern
+    description: Minimal header, footer with confidentiality note.
+  - code: technical
+    description: Gridline header, footer with revision tracking.
+fonts:
+  - "Arial"
+  - "Georgia"
+  - "Helvetica"
+  - "Times New Roman"
+  - "Verdana"
+margins:
+  - {top: 0.75, bottom: 0.75, left: 1.0, right: 1.0}
+  - {top: 1.0, bottom: 1.0, left: 1.0, right: 1.0}
+  - {top: 1.25, bottom: 1.0, left: 1.25, right: 1.25}
+  - {top: 0.65, bottom: 0.9, left: 0.9, right: 0.9}
+page_limits:
+  - 35
+  - 40
+  - 45
+  - 50
+  - 55
