@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 100% 0 0;
+    --foreground: 0% 0 0;
+    --card: 100% 0 0;
+    --card-foreground: 0% 0 0;
+    --popover: 100% 0 0;
+    --popover-foreground: 0% 0 0;
+    --primary: 64.89% 0.2370 26.9728;
+    --primary-foreground: 100% 0 0;
+    --secondary: 96.80% 0.2110 109.7692;
+    --secondary-foreground: 0% 0 0;
+    --muted: 95.51% 0 0;
+    --muted-foreground: 32.11% 0 0;
+    --accent: 56.35% 0.2408 260.8178;
+    --accent-foreground: 100% 0 0;
+    --destructive: 0% 0 0;
+    --destructive-foreground: 100% 0 0;
+    --border: 0% 0 0;
+    --input: 0% 0 0;
+    --ring: 64.89% 0.2370 26.9728;
+    --radius: 0px;
+  }
+
+  .dark {
+    --background: 0% 0 0;
+    --foreground: 100% 0 0;
+    --card: 32.11% 0 0;
+    --card-foreground: 100% 0 0;
+    --popover: 32.11% 0 0;
+    --popover-foreground: 100% 0 0;
+    --primary: 70.44% 0.1872 23.1858;
+    --primary-foreground: 0% 0 0;
+    --secondary: 96.91% 0.2005 109.6228;
+    --secondary-foreground: 0% 0 0;
+    --muted: 21.78% 0 0;
+    --muted-foreground: 84.52% 0 0;
+    --accent: 67.55% 0.1765 252.2592;
+    --accent-foreground: 0% 0 0;
+    --destructive: 100% 0 0;
+    --destructive-foreground: 0% 0 0;
+    --border: 100% 0 0;
+    --input: 100% 0 0;
+    --ring: 70.44% 0.1872 23.1858;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'DM Sans', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  code {
+    font-family: 'Space Mono', monospace;
+  }
+}
