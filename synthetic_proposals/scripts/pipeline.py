@@ -788,8 +788,17 @@ def _apply_mistakes(proposal: Dict[str, Any], meta: Dict[str, Any], mistakes: Se
                 phrase = rng.choice(banned_phrases)
                 work = proposal.setdefault("work_approach", {})
                 success_factors = work.setdefault("success_factors", [])
-                if len(success_factors) >= 2:
-                    success_factors[1] = f"This provides an {phrase} and must be replaced with compliant language."
+                sentence_templates = [
+                    "Our delivery narrative promises {phrase} at every milestone.",
+                    "Stakeholders are guaranteed {phrase} across the entire program.",
+                    "We provide {phrase} support for each phase of the engagement.",
+                ]
+                sentence = rng.choice(sentence_templates).format(phrase=phrase)
+                if success_factors:
+                    insert_at = rng.randint(0, len(success_factors))
+                    success_factors.insert(insert_at, sentence)
+                else:
+                    success_factors.append(sentence)
                 meta.setdefault("content", {}).setdefault("banned_phrases", []).append(
                     {"phrase": phrase, "section": "work_approach"}
                 )

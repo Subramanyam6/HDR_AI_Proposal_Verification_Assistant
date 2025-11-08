@@ -27,7 +27,7 @@ WORK APPROACH
 
 Requirement R1 response is detailed through staged reviews, targeted stakeholder workshops, and integrated risk checks to manage scope.
 This provides an assurance that our delivery method avoids scope drift.
-This provides an absolute assurance and must be replaced with compliant language.
+Our delivery narrative guarantees absolute assurance across every milestone.
 
 PROJECT SCHEDULE
 
