@@ -26,7 +26,7 @@ Discipline Lead 4: Anna Ross (15% availability)
 WORK APPROACH
 
 Requirement R1 response is detailed through staged reviews, targeted stakeholder workshops, and integrated risk checks to manage scope.
-This provides an assurance that our delivery method avoids scope drift.
+We rely on milestone gate reviews to keep the delivery method aligned with scope.
 We avoid scope drift by using compliant language throughout our program plan.
 
 PROJECT SCHEDULE

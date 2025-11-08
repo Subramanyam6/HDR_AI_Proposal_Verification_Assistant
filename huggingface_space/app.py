@@ -12,6 +12,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Generator, List, Optional, Sequence, Tuple
+
+GradioUpdate = Dict[str, Any]
 import html
 try:
     import markdown  # type: ignore
@@ -418,15 +420,15 @@ def generate_rag_suggestions(text: str, failed_checks: List[str]) -> str:
         mock_output = ""
         for check in failed_checks:
             if check == "Crosswalk Error":
-                mock_output += "**✗ Crosswalk Error**\n"
+                mock_output += "**✗ Crosswalk Error**\n\n"
                 mock_output += "- **Issue Found:** Requirement citations may be incorrect\n"
                 mock_output += "- **Recommended Fix:** Verify that R1-R5 citations match the correct RFP sections\n\n"
             elif check == "Banned Phrases":
-                mock_output += "**✗ Banned Phrases**\n"
+                mock_output += "**✗ Banned Phrases**\n\n"
                 mock_output += "- **Issue Found:** Prohibited language detected\n"
                 mock_output += "- **Recommended Fix:** Replace with compliant phrasing (e.g., 'We will make every effort to...')\n\n"
             elif check == "Name Inconsistency":
-                mock_output += "**✗ Name Inconsistency**\n"
+                mock_output += "**✗ Name Inconsistency**\n\n"
                 mock_output += "- **Issue Found:** PM name appears in different formats\n"
                 mock_output += "- **Recommended Fix:** Use consistent full name throughout the proposal\n\n"
 
@@ -522,7 +524,7 @@ def generate_rule_table_html(rule_result: Tuple[str, str]) -> str:
     )
 
 
-def get_empty_table_html() -> str:
+def get_empty_table_html(*, loading: bool = False) -> str:
     """Render placeholder ML table with em-dash cells."""
     placeholder = f'<span style="opacity:0.6;">{RULE_PLACEHOLDER}</span>'
     rows = [
@@ -534,31 +536,44 @@ def get_empty_table_html() -> str:
         ]
         for label in LABELS
     ]
+    extra_class = "loading" if loading else ""
     return _render_results_table(
         "Machine Learning-Based Checks",
         rows,
         ["Check", "Transformer", "TF-IDF", "Naive Bayes"],
+        extra_class=extra_class,
     )
 
 
-def get_empty_rule_table_html() -> str:
+def get_empty_rule_table_html(*, loading: bool = False) -> str:
     """Placeholder table for rule-based check."""
     placeholder = f'<span style="opacity:0.6;">{RULE_PLACEHOLDER}</span>'
+    extra_class = "loading" if loading else ""
     return _render_results_table(
         "Rule-Based Checks",
         [[DATE_RULE_LABEL, placeholder]],
         ["Check", RULE_METHOD_LABEL],
+        extra_class=extra_class,
     )
 
 
-def _render_results_table(title: str, rows: List[List[str]], headers: List[str]) -> str:
+def _render_results_table(
+    title: str,
+    rows: List[List[str]],
+    headers: List[str],
+    *,
+    extra_class: str = "",
+) -> str:
     header_row = "".join(f"<th>{h}</th>" for h in headers)
     body_rows = "".join(
         "<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in rows
     )
     colspan = len(headers)
+    class_attr = "results-table"
+    if extra_class:
+        class_attr += f" {extra_class.strip()}"
     return f"""
-<table class="results-table">
+<table class="{class_attr}">
   <thead>
     <tr class="results-table__section"><th colspan="{colspan}">{title.upper()}</th></tr>
     <tr class="results-table__header-row">{header_row}</tr>
@@ -568,7 +583,7 @@ def _render_results_table(title: str, rows: List[List[str]], headers: List[str])
 """.strip()
 
 
-def render_ai_block(content: str | None) -> str:
+def render_ai_block(content: Optional[str], *, loading: bool = False) -> str:
     text = (content or "").strip()
     if not text:
         body = '<p class="ai-placeholder">Awaiting analysis...</p>'
@@ -578,8 +593,12 @@ def render_ai_block(content: str | None) -> str:
         else:
             body = "<p>" + html.escape(text).replace("\n", "<br>") + "</p>"
 
+    classes = "ai-table"
+    if loading:
+        classes += " loading"
+
     return f"""
-<div class="ai-table">
+<div class="{classes}">
   <div class="ai-table__header">AI-POWERED SUGGESTIONS (GPT-4o + RAG)</div>
   <div class="ai-table__body">{body}</div>
 </div>
@@ -590,6 +609,14 @@ def verify_proposal(pdf_file: Optional[str], raw_text: Optional[str]) -> Generat
     """Run verification and stream RAG suggestions after core results are ready."""
     try:
         text = resolve_inputs(pdf_file, raw_text)
+
+        # Show loading state immediately
+        yield (
+            get_empty_table_html(loading=True),
+            get_empty_rule_table_html(loading=True),
+            "_Running verification..._",
+        )
+
         transformer_results = run_distilbert_model(text)
         tfidf_results = run_tfidf_model(text)
         nb_results = run_nb_models(text)
@@ -599,11 +626,11 @@ def verify_proposal(pdf_file: Optional[str], raw_text: Optional[str]) -> Generat
         rule_table = generate_rule_table_html(rule_result)
 
         # Immediately show tables while AI suggestions load.
-        yield ml_table, rule_table, render_ai_block("_Generating AI suggestions..._")
+        yield ml_table, rule_table, "_Generating AI suggestions..._"
 
         failed_checks = get_failed_checks_from_distilbert(transformer_results)
         suggestions = generate_rag_suggestions(text, failed_checks)
-        yield ml_table, rule_table, render_ai_block(suggestions)
+        yield ml_table, rule_table, suggestions
 
     except Exception as exc:
         gr.Warning(str(exc))
@@ -623,15 +650,15 @@ def load_sample(sample_key: Optional[str]) -> str:
     return ""
 
 
-def load_pdf_sample(sample_key: Optional[str]):
-    """Load a placeholder PDF into the uploader."""
+def load_pdf_sample(sample_key: Optional[str]) -> Optional[str]:
+    """Resolve PDF sample path for the uploader."""
     if not sample_key or sample_key == "Select a PDF sample...":
-        return gr.update(value=None)
+        return None
     sample_path = PDF_SAMPLE_LIBRARY.get(sample_key)
     if sample_path and sample_path.exists():
-        return gr.update(value=str(sample_path))
+        return str(sample_path)
     gr.Warning("Sample PDF not found.")
-    return gr.update(value=None)
+    return None
 
 
 
@@ -639,22 +666,52 @@ def clear_all() -> Tuple[Any, ...]:
     """Clear all inputs and outputs."""
     empty_table = get_empty_table_html()
     empty_rule_table = get_empty_rule_table_html()
-    empty_suggestions = render_ai_block("")
+    empty_suggestions = ""
 
     outputs: List[Any] = [gr.update(value=None), ""]
     if HAS_SAMPLE_DROPDOWN:
         outputs.append("Select a text sample...")
     if HAS_PDF_SAMPLE_DROPDOWN:
         outputs.append("Select a PDF sample...")
-    outputs.extend([empty_table, empty_rule_table, empty_suggestions])
+    outputs.extend([empty_table, empty_rule_table, empty_suggestions, gr.update(interactive=False)])
     return tuple(outputs)
 
 
-def handle_pdf_upload(pdf_file: Optional[str], current_text: str) -> str:
-    """Clear text input when a PDF is uploaded."""
+def _run_button_state(pdf_file: Optional[str], text_value: str) -> GradioUpdate:
+    """Return a Gradio update object toggling Run button interactivity."""
+    has_input = bool(pdf_file) or bool(text_value.strip())
+    return gr.update(interactive=has_input)
+
+
+def handle_pdf_change(pdf_file: Optional[str], current_text: str) -> Tuple[str, GradioUpdate]:
+    """Ensure text is cleared when a PDF is supplied and update button state."""
+    new_text = current_text
     if pdf_file is not None and current_text.strip():
-        return ""
-    return current_text
+        new_text = ""
+    return new_text, _run_button_state(pdf_file, new_text)
+
+
+def handle_text_input_change(new_text: str, current_pdf: Optional[str]) -> Tuple[GradioUpdate, GradioUpdate]:
+    """Ensure PDF input is cleared when text is supplied and update button state."""
+    if new_text.strip():
+        pdf_value = None
+    else:
+        pdf_value = current_pdf
+    return gr.update(value=pdf_value), _run_button_state(pdf_value, new_text)
+
+
+def handle_text_sample_change(sample_key: Optional[str], current_pdf: Optional[str]) -> Tuple[str, GradioUpdate, GradioUpdate]:
+    """Load text sample, clear PDF if needed, and update button state."""
+    text = load_sample(sample_key)
+    pdf_value = None if text.strip() else current_pdf
+    return text, gr.update(value=pdf_value), _run_button_state(pdf_value, text)
+
+
+def handle_pdf_sample_change(sample_key: Optional[str], current_text: str) -> Tuple[GradioUpdate, str, GradioUpdate]:
+    """Load PDF sample, clear text, and update button state."""
+    pdf_value = load_pdf_sample(sample_key)
+    new_text = "" if pdf_value else current_text
+    return gr.update(value=pdf_value), new_text, _run_button_state(pdf_value, new_text)
 
 
 # Load CSS
@@ -714,7 +771,8 @@ with gr.Blocks(css=css_styles, title="HDR Proposal Verification") as demo:
                 "Run Verification",
                 variant="primary",
                 size="lg",
-                elem_id="run-button"
+                elem_id="run-button",
+                interactive=False,
             )
 
         # Right panel - Results
@@ -731,8 +789,8 @@ with gr.Blocks(css=css_styles, title="HDR Proposal Verification") as demo:
                 elem_id="rule-table",
             )
 
-            suggestions_box = gr.HTML(
-                value=render_ai_block(""),
+            suggestions_box = gr.Markdown(
+                value="",
                 elem_id="rag-suggestions",
             )
 
@@ -750,23 +808,29 @@ with gr.Blocks(css=css_styles, title="HDR Proposal Verification") as demo:
         show_progress="full",  # Show loading spinner
     )
 
-    pdf_input.upload(
-        fn=handle_pdf_upload,
+    pdf_input.change(
+        fn=handle_pdf_change,
         inputs=[pdf_input, text_input],
-        outputs=text_input,
+        outputs=[text_input, run_button],
+    )
+
+    text_input.change(
+        fn=handle_text_input_change,
+        inputs=[text_input, pdf_input],
+        outputs=[pdf_input, run_button],
     )
 
     if HAS_SAMPLE_DROPDOWN:
         sample_dropdown.change(
-            fn=load_sample,
-            inputs=sample_dropdown,
-            outputs=text_input,
+            fn=handle_text_sample_change,
+            inputs=[sample_dropdown, pdf_input],
+            outputs=[text_input, pdf_input, run_button],
         )
     if HAS_PDF_SAMPLE_DROPDOWN:
         pdf_sample_dropdown.change(
-            fn=load_pdf_sample,
-            inputs=pdf_sample_dropdown,
-            outputs=pdf_input,
+            fn=handle_pdf_sample_change,
+            inputs=[pdf_sample_dropdown, text_input],
+            outputs=[pdf_input, text_input, run_button],
         )
 
     clear_outputs: List[Any] = [pdf_input, text_input]
@@ -774,7 +838,7 @@ with gr.Blocks(css=css_styles, title="HDR Proposal Verification") as demo:
         clear_outputs.append(sample_dropdown)
     if HAS_PDF_SAMPLE_DROPDOWN:
         clear_outputs.append(pdf_sample_dropdown)
-    clear_outputs.extend([results_table, rule_table, suggestions_box])
+    clear_outputs.extend([results_table, rule_table, suggestions_box, run_button])
 
     clear_button.click(
         fn=clear_all,
