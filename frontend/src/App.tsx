@@ -324,7 +324,7 @@ function App() {
               </a>
               <div className="header-pipeline-inline"></div>
               <a
-                href="https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Vefification_Assistant"
+                href="https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Verification_Assistant_V2"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-foreground transition-all duration-200 group flex items-center justify-center w-12 h-12 relative z-10"
@@ -399,12 +399,25 @@ function App() {
                     )}
                     {pdfFile && pdfPreviewUrl ? (
                       <div className="absolute inset-0 w-full h-full border-2 border-black bg-white">
-                        <iframe
-                          src={pdfPreviewUrl}
+                        <object
+                          data={pdfPreviewUrl}
+                          type="application/pdf"
                           className="w-full h-full"
-                          title="PDF Preview"
                           style={{ border: 'none' }}
-                        />
+                        >
+                          <embed
+                            src={pdfPreviewUrl}
+                            type="application/pdf"
+                            className="w-full h-full"
+                            style={{ border: 'none' }}
+                          />
+                          <p className="p-4 text-center text-muted-foreground">
+                            Your browser does not support PDF preview. 
+                            <a href={pdfPreviewUrl} download={pdfFile.name} className="text-accent underline ml-1">
+                              Download PDF
+                            </a>
+                          </p>
+                        </object>
                       </div>
                     ) : (
                       <div className="space-y-3">
@@ -825,7 +838,7 @@ function App() {
                     <line x1="12" y1="8" x2="12" y2="22" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                   <a
-                    href="https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Vefification_Assistant"
+                    href="https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Verification_Assistant_V2"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-foreground transition-all duration-200 group flex items-center justify-center w-9 h-9 flex-shrink-0"

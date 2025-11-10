@@ -1,4 +1,11 @@
+# Track large model files with Git LFS
 *.safetensors filter=lfs diff=lfs merge=lfs -text
 *.pkl filter=lfs diff=lfs merge=lfs -text
 *.pickle filter=lfs diff=lfs merge=lfs -text
+*.pt filter=lfs diff=lfs merge=lfs -text
+*.pth filter=lfs diff=lfs merge=lfs -text
+*.h5 filter=lfs diff=lfs merge=lfs -text
+*.ckpt filter=lfs diff=lfs merge=lfs -text
+
+# PDF files (sample PDFs)
 backend/app/pdfs/*.pdf filter=lfs diff=lfs merge=lfs -text
