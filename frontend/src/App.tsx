@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useAppStore } from './store/useAppStore'
 import { Button } from './components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card'
-import { RotateCw, CloudUpload, X, Info } from 'lucide-react'
+import { RotateCw, CloudUpload, X, Info, FileText } from 'lucide-react'
 import { initializeIcons } from '@fluentui/react'
 import FuzzyText from './components/FuzzyText'
 import LetterGlitch from './components/LetterGlitch'
@@ -156,20 +156,6 @@ function App() {
   const [isDragging, setIsDragging] = useState(false)
   const [licenseModalOpen, setLicenseModalOpen] = useState(false)
   const [aboutModalOpen, setAboutModalOpen] = useState(false)
-  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null)
-
-  // Create preview URL when PDF is uploaded
-  useEffect(() => {
-    if (pdfFile) {
-      const url = URL.createObjectURL(pdfFile)
-      setPdfPreviewUrl(url)
-      return () => {
-        URL.revokeObjectURL(url)
-      }
-    } else {
-      setPdfPreviewUrl(null)
-    }
-  }, [pdfFile])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -206,12 +192,8 @@ function App() {
   }
 
   const handleClearPdf = () => {
-    if (pdfPreviewUrl) {
-      URL.revokeObjectURL(pdfPreviewUrl)
-    }
     setPdfFile(null)
     setSelectedPdfSample(null)
-    setPdfPreviewUrl(null)
   }
 
   const [fuzzyTextValues, setFuzzyTextValues] = useState<Record<string, boolean>>({})
@@ -369,11 +351,7 @@ function App() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`relative border-2 border-black bg-background transition-colors shadow-brutal ${
-                      pdfFile && pdfPreviewUrl 
-                        ? 'cursor-default h-[calc(100vh-300px)] min-h-[600px]' 
-                        : `p-8 text-center cursor-pointer pdf-upload-hover ${isDragging ? 'pdf-upload-dragging' : ''}`
-                    } ${inputText ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+                    className={`relative border-2 border-black bg-background transition-colors shadow-brutal p-6 text-center ${pdfFile ? 'cursor-default' : 'cursor-pointer pdf-upload-hover'} ${isDragging ? 'pdf-upload-dragging' : ''} ${inputText ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
                     onClick={() => !inputText && !pdfFile && document.getElementById('pdf-input')?.click()}
                   >
                     <input
@@ -397,27 +375,15 @@ function App() {
                         <X className="w-4 h-4" />
                       </button>
                     )}
-                    {pdfFile && pdfPreviewUrl ? (
-                      <div className="absolute inset-0 w-full h-full border-2 border-black bg-white">
-                        <object
-                          data={pdfPreviewUrl}
-                          type="application/pdf"
-                          className="w-full h-full"
-                          style={{ border: 'none' }}
-                        >
-                          <embed
-                            src={pdfPreviewUrl}
-                            type="application/pdf"
-                            className="w-full h-full"
-                            style={{ border: 'none' }}
-                          />
-                          <p className="p-4 text-center text-muted-foreground">
-                            Your browser does not support PDF preview. 
-                            <a href={pdfPreviewUrl} download={pdfFile.name} className="text-accent underline ml-1">
-                              Download PDF
-                            </a>
+                    {pdfFile ? (
+                      <div className="space-y-3">
+                        <FileText className="w-12 h-12 mx-auto text-foreground" style={{ strokeWidth: 2, strokeLinecap: 'square', strokeLinejoin: 'miter' }} />
+                        <div>
+                          <p className="text-sm font-semibold mb-1">
+                            {pdfFile.name}
                           </p>
-                        </object>
+                          <p className="text-xs text-muted-foreground">PDF uploaded successfully</p>
+                        </div>
                       </div>
                     ) : (
                       <div className="space-y-3">
