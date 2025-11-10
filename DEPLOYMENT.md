@@ -71,7 +71,7 @@ git push -u origin main
 
 ```bash
 # Clone your new HuggingFace Space
-git clone https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Verification_Assistant
+git clone https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Verification_Assistant_V2
 cd HDR_AI_Proposal_Verification_Assistant
 ```
 
@@ -143,7 +143,7 @@ git push
 1. Go to your Space page on HuggingFace
 2. Click on the "Logs" tab to see build progress
 3. Wait for the build to complete (usually 5-10 minutes)
-4. Once built, your app will be live at: `https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Verification_Assistant`
+4. Once built, your app will be live at: `https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Verification_Assistant_V2`
 
 ## Step 3: Environment Variables (HuggingFace Secrets)
 

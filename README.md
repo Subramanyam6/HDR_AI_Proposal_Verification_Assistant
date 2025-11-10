@@ -112,7 +112,7 @@ npm run dev
 
 ⚠️ **IMPORTANT**: Model files (~260MB) are NOT in Git. Download from HuggingFace Spaces:
 
-Visit: https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Verification_Assistant/tree/main/huggingface_space/model
+Visit: https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Verification_Assistant_V2/tree/main/huggingface_space/model
 
 Download and place in `backend/app/models/`:
 - `vectorizer.pkl` (405 KB)

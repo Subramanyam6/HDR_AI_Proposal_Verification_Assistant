@@ -94,7 +94,7 @@ pinned: false
 
 Two remotes configured:
 ```bash
-huggingface   https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Vefification_Assistant.git
+huggingface   https://huggingface.co/spaces/Subramanyam6/HDR_AI_Proposal_Verification_Assistant_V2.git
 origin        https://github.com/Subramanyam6/HDR_AI_Proposal_Verification_Assistant.git
 ```
 
