@@ -97,3 +97,5 @@ temp/
 # Debug and test scripts
 debug_scripts/
 
+.env*
+huggingface_space/.env
