@@ -1,0 +1,91 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CLAUDE.md
+*.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
+env/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Frontend build (will be built in Docker)
+frontend/dist/
+frontend/.vite/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Large data files
+synthetic_proposals/dataset/
+training_logs/
+*.pdf
+!backend/app/samples/*.txt
+
+# Cache
+.cache/
+*.cache
+.pytorch/
+.huggingface/
+transformers_cache/
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.yml
+.dockerignore
+Dockerfile*
+
+# HuggingFace Space files (will be created separately)
+app.py
+README.md

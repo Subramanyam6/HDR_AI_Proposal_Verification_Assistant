@@ -1,6 +1,6 @@
 seed: 20240510
 counts:
-  total: 10000
+  total: 5000
   split:
     train: 0.72
     dev: 0.14

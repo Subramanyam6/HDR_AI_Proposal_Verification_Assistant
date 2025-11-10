@@ -4,10 +4,12 @@ Core orchestration logic for the synthetic proposal dataset pipeline.
 
 from __future__ import annotations
 
+import copy
 import itertools
 import json
 import logging
 import math
+import string
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -18,6 +20,13 @@ from .util_text import generate_chunks
 
 
 logger = logging.getLogger("synthetic_proposals.pipeline")
+TARGET_LABELS = ("crosswalk_error", "banned_phrase", "pm_name_variant")
+VARIANT_SUFFIX_MAP = {
+    "clean": "",
+    "crosswalk_error": "_crosswalk",
+    "banned_phrase": "_banned",
+    "pm_name_variant": "_name",
+}
 
 
 @dataclass
@@ -58,6 +67,250 @@ class GenerationContext:
     dictionaries: Dict[str, Any]
     seeds_by_sector: Dict[str, List[Dict[str, Any]]]
     rng: common.RandomSource
+
+
+def _mix_phrase_into_sentence(sentence: str, phrase: str, rng: common.RandomSource) -> str:
+    """Inject a banned phrase into an existing sentence without introducing new structure."""
+    stripped = sentence.strip()
+    if not stripped:
+        return phrase
+
+    tokens = stripped.split()
+    if len(tokens) <= 3:
+        connector = rng.choice(["and", "including", "plus"])
+        return f"{stripped.rstrip()} {connector} {phrase}"
+
+    insertion = rng.randint(1, len(tokens) - 1)
+    bridge_options = ["", "and", "including", "plus", "with"]
+    bridge = rng.choice(bridge_options)
+    injected = phrase if not bridge else f"{bridge} {phrase}"
+    tokens.insert(insertion, injected)
+    mixed = " ".join(tokens)
+    return mixed
+
+
+def _gather_work_text_slots(work: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Collect mutable text slots within the work approach section."""
+    slots: List[Dict[str, Any]] = []
+    for key, value in work.items():
+        base_path = f"work_approach.{key}"
+        if isinstance(value, str) and value.strip():
+            slots.append({"kind": "field", "container": work, "key": key, "path": base_path})
+        elif isinstance(value, list):
+            for idx, item in enumerate(value):
+                path = f"{base_path}[{idx}]"
+                if isinstance(item, str) and item.strip():
+                    slots.append({"kind": "list", "container": value, "index": idx, "path": path})
+                elif isinstance(item, dict):
+                    for sub_key in ("text", "description", "summary", "content", "narrative"):
+                        sub_val = item.get(sub_key)
+                        if isinstance(sub_val, str) and sub_val.strip():
+                            slots.append(
+                                {
+                                    "kind": "dict",
+                                    "container": item,
+                                    "key": sub_key,
+                                    "path": f"{path}.{sub_key}",
+                                }
+                            )
+    return slots
+
+
+def _sprinkle_banned_phrase(work: Dict[str, Any], phrase: str, rng: common.RandomSource) -> Optional[str]:
+    """Inline a banned phrase anywhere inside the work approach section."""
+    slots = _gather_work_text_slots(work)
+    if not slots:
+        return None
+    slot = rng.choice(slots)
+    if slot["kind"] == "field":
+        current = slot["container"][slot["key"]]
+        slot["container"][slot["key"]] = _mix_phrase_into_sentence(current, phrase, rng)
+    elif slot["kind"] == "list":
+        idx = slot["index"]
+        current = slot["container"][idx]
+        slot["container"][idx] = _mix_phrase_into_sentence(current, phrase, rng)
+    elif slot["kind"] == "dict":
+        current = slot["container"][slot["key"]]
+        slot["container"][slot["key"]] = _mix_phrase_into_sentence(current, phrase, rng)
+    return slot["path"]
+
+
+def _requirement_reference_sentence(req_id: str, rng: common.RandomSource) -> Optional[str]:
+    """Create a varied sentence pointing to the work-approach requirement."""
+    templates = [
+        "Section 5 (Work Approach) details how we will satisfy requirement {req}.",
+        "Requirement {req} is mapped directly to our Work Approach deliverables.",
+        "See the Work Approach chapter for our full response to requirement {req}.",
+        "Our Work Approach narrative fully addresses requirement {req}.",
+    ]
+    if rng.random.random() < 0.2:
+        return None
+    sentence = rng.choice(templates)
+    return sentence.format(req=req_id)
+
+
+def _executive_summary_text(req_id: str, rng: common.RandomSource, include_req: bool = True) -> str:
+    """Return a base executive-summary sentence with optional explicit requirement mention."""
+    with_req = [
+        "Requirement {req} is addressed through phased reviews, targeted workshops, and integrated risk checkpoints.",
+        "Our plan for requirement {req} combines collaborative design sprints with progressive assurance gates.",
+        "To meet requirement {req}, we run iterative coordination cycles paired with on-call technical support.",
+    ]
+    generic = [
+        "Our plan combines phased reviews, targeted workshops, and integrated risk checkpoints.",
+        "The work approach blends collaborative design sprints with progressive assurance gates.",
+        "We run iterative coordination cycles paired with on-call technical support.",
+    ]
+    templates = with_req if include_req else generic
+    return rng.choice(templates).format(req=req_id)
+
+
+def _remove_requirement_reference(proposal: Dict[str, Any], req_id: str, rng: common.RandomSource) -> bool:
+    """Strip explicit requirement mentions to simulate missing citations."""
+    pattern = f"Requirement {req_id}"
+    removed = False
+    letter = proposal.setdefault("letter", {})
+    body = letter.setdefault("body", [])
+    for idx in range(len(body) - 1, -1, -1):
+        if pattern in body[idx]:
+            if len(body[idx].strip()) <= len(pattern) + 20 or rng.random.random() < 0.5:
+                body.pop(idx)
+            else:
+                body[idx] = body[idx].replace(pattern, "The requirement", 1)
+            removed = True
+    work = proposal.setdefault("work_approach", {})
+    exec_summary = work.get("executive_summary", "")
+    if isinstance(exec_summary, str) and pattern in exec_summary:
+        work["executive_summary"] = _executive_summary_text(req_id, rng, include_req=False)
+        removed = True
+    success_factors = work.get("success_factors", [])
+    for idx, line in enumerate(success_factors):
+        if isinstance(line, str) and pattern in line:
+            success_factors[idx] = line.replace(pattern, "Key requirement", 1)
+            removed = True
+    return removed
+
+
+def _pick_name_variant(pm_name: str, rng: common.RandomSource) -> str:
+    """Generate a plausible alternate PM name including spelling noise."""
+    parts = pm_name.split()
+
+    def init_last() -> str:
+        if len(parts) >= 2:
+            return f"{parts[0]} {parts[-1][0]}."
+        return parts[0]
+
+    def first_initial_full_last() -> str:
+        if len(parts) >= 2:
+            return f"{parts[0][0]}. {parts[-1]}"
+        return pm_name
+
+    def suffix_variant() -> str:
+        suffix = rng.choice(["Jr.", "Sr.", "III"])
+        return f"{pm_name} {suffix}"
+
+    def uppercase() -> str:
+        return pm_name.upper()
+
+    strategies = [init_last, first_initial_full_last, suffix_variant, uppercase]
+    strategies.append(lambda: _apply_spelling_noise(pm_name, rng))
+    variant = rng.choice(strategies)()
+    if variant == pm_name:
+        variant = _apply_spelling_noise(pm_name, rng)
+    return variant
+
+
+def _apply_spelling_noise(name: str, rng: common.RandomSource) -> str:
+    """Introduce letter-level typos across the name tokens."""
+    tokens = name.split()
+    if not tokens:
+        return name
+    edits = rng.randint(1, min(2, len(tokens)))
+    indices = rng.sample(range(len(tokens)), edits)
+    for idx in indices:
+        tokens[idx] = _mutate_token(tokens[idx], rng)
+    return " ".join(tokens)
+
+
+def _mutate_token(token: str, rng: common.RandomSource) -> str:
+    """Apply a random mutation (delete, duplicate, swap, substitute) to a token."""
+    if len(token) <= 1:
+        return token
+    letters = list(token)
+    pos = rng.randint(0, len(letters) - 1)
+    operations = ["delete", "duplicate", "swap", "substitute"]
+    op = rng.choice(operations)
+    if op == "delete" and len(letters) > 1:
+        letters.pop(pos)
+    elif op == "duplicate":
+        letters.insert(pos, letters[pos])
+    elif op == "swap" and pos < len(letters) - 1:
+        letters[pos], letters[pos + 1] = letters[pos + 1], letters[pos]
+    else:  # substitute
+        replacement = rng.choice(string.ascii_lowercase)
+        letters[pos] = replacement.upper() if letters[pos].isupper() else replacement
+    return "".join(letters)
+
+
+def _collect_pm_name_slots(proposal: Dict[str, Any], pm_name: str) -> List[Dict[str, Any]]:
+    """Find all sections that currently contain the PM name."""
+    slots: List[Dict[str, Any]] = []
+    letter = proposal.setdefault("letter", {})
+    body = letter.setdefault("body", [])
+    if any(pm_name in line for line in body):
+        slots.append({"kind": "list", "container": body, "allow_multiple": True})
+
+    staffing = proposal.setdefault("staffing_plan", {})
+    availability = staffing.setdefault("availability", [])
+    if any(pm_name in line for line in availability):
+        slots.append({"kind": "list", "container": availability, "allow_multiple": False})
+
+    work = proposal.setdefault("work_approach", {})
+    exec_summary = work.get("executive_summary")
+    if isinstance(exec_summary, str) and pm_name in exec_summary:
+        slots.append({"kind": "field", "container": work, "key": "executive_summary"})
+    success_factors = work.setdefault("success_factors", [])
+    if any(isinstance(line, str) and pm_name in line for line in success_factors):
+        slots.append({"kind": "list", "container": success_factors, "allow_multiple": True})
+
+    subs = proposal.setdefault("subs_summary", {})
+    for key in ("approach", "dbe_strategy"):
+        entries = subs.setdefault(key, [])
+        if any(pm_name in line for line in entries):
+            slots.append({"kind": "list", "container": entries, "allow_multiple": False})
+
+    schedule = proposal.setdefault("schedule", {})
+    for milestone in schedule.get("milestones", []):
+        desc = milestone.get("description")
+        if isinstance(desc, str) and pm_name in desc:
+            slots.append({"kind": "dict", "container": milestone, "key": "description"})
+
+    return slots
+
+
+def _replace_name_in_slot(slot: Dict[str, Any], pm_name: str, variant: str) -> bool:
+    """Swap a PM name occurrence inside a collected slot."""
+    if slot["kind"] == "field":
+        text = slot["container"].get(slot["key"], "")
+        if pm_name in text:
+            slot["container"][slot["key"]] = text.replace(pm_name, variant, 1)
+            return True
+    elif slot["kind"] == "dict":
+        text = slot["container"].get(slot["key"], "")
+        if pm_name in text:
+            slot["container"][slot["key"]] = text.replace(pm_name, variant, 1)
+            return True
+    elif slot["kind"] == "list":
+        lines = slot["container"]
+        replaced = False
+        for idx, line in enumerate(lines):
+            if pm_name in line:
+                lines[idx] = line.replace(pm_name, variant, 1)
+                replaced = True
+                if not slot.get("allow_multiple", False):
+                    break
+        return replaced
+    return False
 
 
 def _load_seeds_by_sector() -> Dict[str, List[Dict[str, Any]]]:
@@ -165,34 +418,6 @@ def _build_attribute_sequence(
 
     rng.shuffle(sequence)
     return sequence
-
-
-def _build_mistake_plan(total: int, mistakes_config: Dict[str, float], rng: common.RandomSource) -> List[List[str]]:
-    """Assign mistakes to each proposal index while hitting minimum target counts."""
-    mistake_list = list(mistakes_config.keys())
-    targets: Dict[str, int] = {}
-    for mistake_key, probability in mistakes_config.items():
-        targets[mistake_key] = max(int(total * probability), 20)
-
-    plan: List[List[str]] = []
-    for index in range(total):
-        assigned: List[str] = []
-        proposals_remaining = total - index
-        for mistake_key in mistake_list:
-            remaining = targets[mistake_key]
-            if remaining <= 0:
-                continue
-            probability = remaining / proposals_remaining
-            if rng.random.random() <= probability:
-                assigned.append(mistake_key)
-                targets[mistake_key] -= 1
-        plan.append(assigned)
-    # If any target remains due to rounding, assign to final proposals
-    for mistake_key, remaining in targets.items():
-        while remaining > 0:
-            plan[-remaining].append(mistake_key)
-            remaining -= 1
-    return plan
 
 
 def _random_date_within(rng: common.RandomSource, year: int) -> date:
@@ -437,20 +662,30 @@ def _select_primary_requirement(matrix: List[Dict[str, Any]]) -> Dict[str, Any]:
     return matrix[0] if matrix else {"req_id": "R1", "expected_section": "Work Approach", "cited_section": "Work Approach"}
 
 
-def _apply_base_narrative(proposal: Dict[str, Any], metadata: Dict[str, Any], team: Dict[str, Any], requirement: Dict[str, Any]) -> None:
+def _apply_base_narrative(
+    proposal: Dict[str, Any],
+    metadata: Dict[str, Any],
+    team: Dict[str, Any],
+    requirement: Dict[str, Any],
+    ctx: GenerationContext,
+) -> None:
     pm_name = team.get("pm", {}).get("name", "Project Manager")
     project_name = metadata.get("rfp_title") or metadata.get("project_name") or "the project"
     submission_date = metadata.get("submission_date", "2024-12-31")
     req_id = requirement.get("req_id", "R1")
+    rng = ctx.rng
     letter = proposal.setdefault("letter", {})
-    letter["body"] = [
+    letter_body = [
         f"We are pleased to submit our proposal for {project_name}.",
         f"{pm_name} will serve as the primary contact and Project Manager for this engagement.",
         f"Our anticipated submission date remains {submission_date}.",
         f"This proposal was signed and sealed on {submission_date} by {pm_name}.",
         "Our team brings extensive experience in transit design and environmental compliance.",
-        f"Requirement {req_id} is detailed in Section 5: Work Approach.",
     ]
+    requirement_sentence = _requirement_reference_sentence(req_id, rng)
+    if requirement_sentence:
+        letter_body.append(requirement_sentence)
+    letter["body"] = letter_body
 
     staffing = proposal.setdefault("staffing_plan", {})
     staffing["overview"] = [
@@ -461,9 +696,7 @@ def _apply_base_narrative(proposal: Dict[str, Any], metadata: Dict[str, Any], te
     ]
 
     work = proposal.setdefault("work_approach", {})
-    work["executive_summary"] = (
-        f"Requirement {req_id} response is detailed through staged reviews, targeted stakeholder workshops, and integrated risk checks to manage scope."
-    )
+    work["executive_summary"] = _executive_summary_text(req_id, rng, include_req=True)
     work["success_factors"] = [
         "This provides an assurance that our delivery method avoids scope drift.",
         "We avoid scope drift by using compliant language throughout our program plan.",
@@ -493,8 +726,9 @@ def _generate_compliance_matrix(ctx: GenerationContext) -> List[Dict[str, Any]]:
     return matrix
 
 
-def _select_style_plan(ctx: GenerationContext, mistakes: Sequence[str]) -> Dict[str, Any]:
+def _select_style_plan(ctx: GenerationContext, mistakes: Optional[Sequence[str]] = None) -> Dict[str, Any]:
     rng = ctx.rng
+    mistakes = mistakes or []
     variants = ctx.config.get("content_variation", {}).get("margin_variants", ["base"])
     variant_choice = rng.choice(variants)
     font_families = ctx.dictionaries.get("misc", {}).get("fonts", ["Arial"])
@@ -560,12 +794,11 @@ def _prepare_noise_plan(ctx: GenerationContext) -> Dict[str, Any]:
     return plan
 
 
-def _build_proposal_payload(
+def _build_clean_payload(
     proposal_id: str,
     split: str,
     sector: str,
     agency_type: str,
-    mistakes: Sequence[str],
     ctx: GenerationContext,
 ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     rng = ctx.rng
@@ -609,7 +842,7 @@ def _build_proposal_payload(
     checklist.update(checklist_seed)
     compliance_matrix = _generate_compliance_matrix(ctx)
     primary_requirement = _select_primary_requirement(compliance_matrix)
-    style_plan = _select_style_plan(ctx, mistakes)
+    style_plan = _select_style_plan(ctx, [])
     noise_plan = _prepare_noise_plan(ctx)
     proposal = {
         "proposal_id": proposal_id,
@@ -634,183 +867,123 @@ def _build_proposal_payload(
         "agency_type": metadata.get("agency_type"),
         "style": style_plan,
         "noise_plan": noise_plan,
-        "mistakes": {key: (key in mistakes) for key in ctx.config.get("mistakes", {}).keys()},
+        "mistakes": {label: False for label in TARGET_LABELS},
         "content": {
             "tone": tone,
             "page_limit_required": page_limit,
+            "banned_phrases": [],
         },
         "consistency": {},
         "compliance": {
             "dbe_goal_percent": dbe_goal,
             "dbe_commit_percent": sum(item.get("commitment_percent", 0) for item in appendices.get("B", {}).get("dbe_plan", [])),
             "primary_requirement": primary_requirement,
+            "crosswalk_errors": [],
         },
         "render": {},
         "noise": {},
         "timestamp": datetime.utcnow().isoformat(),
     }
-    _apply_base_narrative(proposal, metadata, team, primary_requirement)
-    _apply_mistakes(proposal, meta, mistakes, ctx)
+    _apply_base_narrative(proposal, metadata, team, primary_requirement, ctx)
     meta["compliance"]["dbe_commit_percent"] = sum(
         item.get("commitment_percent", 0) for item in proposal.get("appendices", {}).get("B", {}).get("dbe_plan", [])
     )
     return proposal, meta
 
 
-def _apply_mistakes(proposal: Dict[str, Any], meta: Dict[str, Any], mistakes: Sequence[str], ctx: GenerationContext) -> None:
+def _build_variant_payloads(
+    base_proposal: Dict[str, Any],
+    base_meta: Dict[str, Any],
+    ctx: GenerationContext,
+) -> Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]]:
+    variants: Dict[str, Tuple[Dict[str, Any], Dict[str, Any]]] = {"clean": (base_proposal, base_meta)}
+    for label in TARGET_LABELS:
+        proposal_clone = copy.deepcopy(base_proposal)
+        meta_clone = copy.deepcopy(base_meta)
+        applied = False
+        if label == "crosswalk_error":
+            applied = _apply_crosswalk_variant(proposal_clone, meta_clone, ctx)
+        elif label == "banned_phrase":
+            applied = _apply_banned_phrase_variant(proposal_clone, meta_clone, ctx)
+        elif label == "pm_name_variant":
+            applied = _apply_name_variant(proposal_clone, meta_clone, ctx)
+        if applied:
+            meta_clone["mistakes"][label] = True
+            variants[label] = (proposal_clone, meta_clone)
+    return variants
+
+
+def _apply_crosswalk_variant(proposal: Dict[str, Any], meta: Dict[str, Any], ctx: GenerationContext) -> bool:
     rng = ctx.rng
-    faker = rng.faker
-    appendices = proposal.get("appendices", {})
-    checklist = proposal.get("checklist", {})
-    metadata = proposal.get("metadata", {})
-    compliance_matrix = proposal.get("compliance_matrix", [])
+    primary = meta.get("compliance", {}).get("primary_requirement", {})
+    req_id = primary.get("req_id")
+    if not req_id:
+        return False
+    work = proposal.setdefault("work_approach", {})
+    alt_req = "R2" if req_id != "R2" else "R3"
+    strategy_missing = rng.random.random() < 0.4
+    cited_section = "Work Approach (wrong content)"
+    detail = f"Cited {alt_req} instead of {req_id}"
+    if strategy_missing:
+        removed = _remove_requirement_reference(proposal, req_id, rng)
+        if removed:
+            cited_section = "Not cited"
+            detail = "Requirement reference removed"
+        else:
+            strategy_missing = False
+    if not strategy_missing:
+        sentence = work.get("executive_summary", "")
+        if sentence:
+            work["executive_summary"] = sentence.replace(req_id, alt_req, 1)
+        else:
+            work["executive_summary"] = _executive_summary_text(alt_req, rng, include_req=True)
+        for row in proposal.get("compliance_matrix", []):
+            if row.get("req_id") == req_id:
+                row["cited_section"] = cited_section
+                break
+    meta.setdefault("compliance", {})["crosswalk_errors"] = [
+        {
+            "req_id": req_id,
+            "expected_section": "Work Approach",
+            "cited_section": cited_section,
+            "detail": detail,
+        }
+    ]
+    return True
+
+
+def _apply_banned_phrase_variant(proposal: Dict[str, Any], meta: Dict[str, Any], ctx: GenerationContext) -> bool:
     banned_phrases = ctx.dictionaries.get("compliance", {}).get("banned_phrases", [])
+    if not banned_phrases:
+        return False
+    rng = ctx.rng
+    phrase = rng.choice(banned_phrases)
+    work = proposal.setdefault("work_approach", {})
+    section_path = _sprinkle_banned_phrase(work, phrase, rng)
+    if not section_path:
+        success_factors = work.setdefault("success_factors", [])
+        insert_at = rng.randint(0, len(success_factors)) if success_factors else 0
+        success_factors.insert(insert_at, phrase)
+        section_path = "work_approach.success_factors"
+    meta.setdefault("content", {})["banned_phrases"] = [{"phrase": phrase, "section": section_path}]
+    return True
 
-    for mistake in mistakes:
-        if mistake == "page_limit_violation":
-            extra_paragraphs = [faker.paragraph(nb_sentences=1) for _ in range(1)]
-            proposal.setdefault("letter", {}).setdefault("body", []).extend(extra_paragraphs)
-            meta.setdefault("content", {})["page_limit_violation"] = True
 
-        elif mistake == "missing_appendix_a":
-            appendices.setdefault("A", {})["addenda_acknowledgment"] = []
-            meta.setdefault("compliance", {})["missing_appendix_a"] = True
-
-        elif mistake == "missing_appendix_b":
-            appendices.setdefault("B", {})["dbe_plan"] = []
-            meta.setdefault("compliance", {})["missing_appendix_b"] = True
-
-        elif mistake == "missing_appendix_c":
-            appendices.setdefault("C", {})["resumes"] = []
-            meta.setdefault("compliance", {})["missing_appendix_c"] = True
-
-        elif mistake == "missing_signature_block":
-            proposal.setdefault("letter", {})["signature_block"] = None
-            meta.setdefault("content", {})["missing_signature_block"] = True
-
-        elif mistake == "addendum_unacknowledged":
-            ack_list = appendices.setdefault("A", {}).setdefault("addenda_acknowledgment", [])
-            if metadata.get("addenda") and ack_list:
-                ack_list[0]["acknowledged"] = False
-                meta.setdefault("compliance", {})["addenda_unacknowledged"] = True
-            else:
-                meta.setdefault("compliance", {})["addenda_unacknowledged"] = False
-
-        elif mistake == "dbe_mismatch":
-            dbe_plan = appendices.setdefault("B", {}).setdefault("dbe_plan", [])
-            for entry in dbe_plan:
-                entry["commitment_percent"] = max(0, entry.get("commitment_percent", 0) - rng.randint(3, 8))
-            meta.setdefault("compliance", {})["dbe_gap"] = True
-
-        elif mistake == "insurance_missing":
-            forms = appendices.setdefault("D", {}).setdefault(
-                "forms", {"non_collusion": True, "insurance_ack": True, "certification": True}
-            )
-            forms["insurance_ack"] = False
-            meta.setdefault("compliance", {})["insurance_missing"] = True
-
-        elif mistake == "pm_name_variant":
-            pm_name = proposal.get("team", {}).get("pm", {}).get("name", "Project Manager")
-            parts = pm_name.split()
-            if len(parts) >= 2 and parts[-1]:
-                variant = f"{parts[0]} {parts[-1][0]}."
-            else:
-                variant = pm_name + " Jr."
-
-            sections = []
-            letter = proposal.setdefault("letter", {})
-            body = letter.setdefault("body", [])
-            sections.append((body, True))
-
-            staffing = proposal.setdefault("staffing_plan", {})
-            availability = staffing.setdefault("availability", [])
-            sections.append((availability, False))
-
-            change_options = [idx for idx, (lines, allow_multiple) in enumerate(sections) if any(pm_name in line for line in lines)]
-            rng.shuffle(change_options)
-            count = rng.randint(1, len(change_options))
-            for idx in change_options[:count]:
-                lines, _ = sections[idx]
-                for line_idx, line in enumerate(lines):
-                    if pm_name in line:
-                        lines[line_idx] = line.replace(pm_name, variant)
-                        break
-
-            meta.setdefault("consistency", {})["pm_name_variant"] = {"original": pm_name, "variant": variant}
-
-        elif mistake == "date_mismatch":
-            letter = proposal.setdefault("letter", {})
-            signature_block = letter.get("signature_block")
-            if not isinstance(signature_block, dict):
-                signature_block = {}
-                letter["signature_block"] = signature_block
-            orig_date = signature_block.get("date") or metadata.get("submission_date")
-            if orig_date:
-                try:
-                    expected_dt = datetime.fromisoformat(orig_date)
-                    new_date = str((expected_dt + timedelta(days=rng.randint(3, 14))).date())
-                except ValueError:
-                    new_date = orig_date
-                signature_block["date"] = new_date
-                body = letter.setdefault("body", [])
-                for idx, paragraph in enumerate(body):
-                    if "signed and sealed" in paragraph.lower():
-                        body[idx] = paragraph.replace(orig_date, new_date)
-                        break
-
-        elif mistake == "project_number_drift":
-            original = metadata.get("rfp_number")
-            drifted = original + "A" if original else f"ALT-{rng.randint(100,999)}"
-            metadata["rfp_number_alias"] = drifted
-            body = proposal.setdefault("letter", {}).setdefault("body", [])
-            if body:
-                body[0] = body[0] + f" Reference: {drifted}."
-            meta.setdefault("consistency", {})["project_number_drift"] = {"expected": original, "cited": drifted}
-
-        elif mistake == "crosswalk_error":
-            primary = meta.get("compliance", {}).get("primary_requirement", {})
-            req_id = primary.get("req_id", "R1")
-            work = proposal.setdefault("work_approach", {})
-            sentence = work.get("executive_summary", "")
-            alt_req = "R2" if req_id != "R2" else "R3"
-            if sentence:
-                work["executive_summary"] = sentence.replace(req_id, alt_req)
-            meta.setdefault("compliance", {}).setdefault("crosswalk_errors", []).append(
-                {
-                    "req_id": req_id,
-                    "expected_section": "Work Approach",
-                    "cited_section": "Work Approach (wrong content)",
-                }
-            )
-
-        elif mistake == "banned_phrase":
-            if banned_phrases:
-                phrase = rng.choice(banned_phrases)
-                work = proposal.setdefault("work_approach", {})
-                success_factors = work.setdefault("success_factors", [])
-                sentence_templates = [
-                    "Our delivery narrative promises {phrase} at every milestone.",
-                    "Stakeholders are guaranteed {phrase} across the entire program.",
-                    "We provide {phrase} support for each phase of the engagement.",
-                ]
-                sentence = rng.choice(sentence_templates).format(phrase=phrase)
-                if success_factors:
-                    insert_at = rng.randint(0, len(success_factors))
-                    success_factors.insert(insert_at, sentence)
-                else:
-                    success_factors.append(sentence)
-                meta.setdefault("content", {}).setdefault("banned_phrases", []).append(
-                    {"phrase": phrase, "section": "work_approach"}
-                )
-
-        elif mistake == "font_size_violation":
-            meta.setdefault("style", {})["font_size_violation"] = True
-
-        elif mistake == "margin_violation":
-            meta.setdefault("style", {})["margin_violation"] = True
-
-    proposal["appendices"] = appendices
-    proposal["checklist"] = checklist
+def _apply_name_variant(proposal: Dict[str, Any], meta: Dict[str, Any], ctx: GenerationContext) -> bool:
+    rng = ctx.rng
+    pm_name = proposal.get("team", {}).get("pm", {}).get("name")
+    if not pm_name:
+        return False
+    slots = _collect_pm_name_slots(proposal, pm_name)
+    if not slots:
+        return False
+    variant = _pick_name_variant(pm_name, rng)
+    rng.shuffle(slots)
+    count = rng.randint(1, len(slots))
+    for slot in slots[:count]:
+        _replace_name_in_slot(slot, pm_name, variant)
+    meta.setdefault("consistency", {})["pm_name_variant"] = {"original": pm_name, "variant": variant}
+    return True
 
 
 def generate_yaml_batch(
@@ -845,28 +1018,39 @@ def generate_yaml_batch(
     agency_fraction = _resolve_fraction(counts_cfg, "min_by_agency_type_fraction", "min_by_agency_type", total)
     agency_sequence = _build_attribute_sequence(agency_types, total, agency_fraction, rng)
 
-    mistake_plan = _build_mistake_plan(total, config.get("mistakes", {}), rng)
-
     proposals: List[ProposalPaths] = []
     for index in range(total):
         proposal_id = f"proposal_{index + 1:04d}"
         split = split_sequence[index]
         sector = sector_sequence[index] if index < len(sector_sequence) else rng.choice(sectors)
         agency_type = agency_sequence[index] if index < len(agency_sequence) else rng.choice(agency_types)
-        mistakes = mistake_plan[index]
-        proposal, meta = _build_proposal_payload(proposal_id, split, sector, agency_type, mistakes, ctx)
-        proposal_dir = root / split / proposal_id
-        common.ensure_dir(proposal_dir)
-        paths = ProposalPaths.from_dir(split, proposal_dir)
-        common.dump_yaml_file(proposal, paths.yaml_path)
-        common.dump_json_file(proposal, paths.json_path)
-        meta.setdefault("paths", {})
-        meta["paths"]["proposal_yaml"] = str(paths.yaml_path)
-        meta["paths"]["proposal_json"] = str(paths.json_path)
-        common.dump_json_file(meta, paths.meta_path)
-        with paths.meta_history_path.open("a", encoding="utf-8") as history_file:
-            history_file.write(json.dumps(meta) + "\n")
-        proposals.append(paths)
+        base_proposal, base_meta = _build_clean_payload(proposal_id, split, sector, agency_type, ctx)
+        variant_payloads = _build_variant_payloads(base_proposal, base_meta, ctx)
+
+        for variant_key, (variant_proposal, variant_meta) in variant_payloads.items():
+            suffix = VARIANT_SUFFIX_MAP.get(variant_key, f"_{variant_key}")
+            variant_id = proposal_id if suffix == "" else f"{proposal_id}{suffix}"
+
+            variant_proposal["proposal_id"] = variant_id
+            variant_proposal["split"] = split
+            variant_meta["id"] = variant_id
+            variant_meta["split"] = split
+            variant_meta.setdefault("paths", {})
+
+            proposal_dir = root / split / variant_id
+            common.ensure_dir(proposal_dir)
+            paths = ProposalPaths.from_dir(split, proposal_dir)
+
+            common.dump_yaml_file(variant_proposal, paths.yaml_path)
+            common.dump_json_file(variant_proposal, paths.json_path)
+
+            variant_meta["paths"]["proposal_yaml"] = str(paths.yaml_path)
+            variant_meta["paths"]["proposal_json"] = str(paths.json_path)
+            common.dump_json_file(variant_meta, paths.meta_path)
+            with paths.meta_history_path.open("a", encoding="utf-8") as history_file:
+                history_file.write(json.dumps(variant_meta) + "\n")
+
+            proposals.append(paths)
     logger.info("Generated %d proposal YAML manifests", len(proposals))
     return proposals
 

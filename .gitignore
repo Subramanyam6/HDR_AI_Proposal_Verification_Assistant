@@ -48,6 +48,7 @@ synthetic_proposals/dataset/*.jsonl
 synthetic_proposals/dataset/*.log
 
 # Model files (pickles, checkpoints)
+# BUT allow backend/app/models/ for deployment
 *.pkl
 *.pickle
 *.pt
@@ -58,9 +59,14 @@ synthetic_proposals/dataset/*.log
 model/
 models/
 checkpoints/
+!backend/app/models/
+!backend/app/models/**/*
 
 # PDF files
 *.pdf
+# BUT allow backend/app/pdfs/ for deployment
+!backend/app/pdfs/
+!backend/app/pdfs/**/*.pdf
 
 # Log files
 *.log

@@ -1,0 +1,15 @@
+{
+  "model_type": "tfidf_logreg",
+  "labels": [
+    "crosswalk_error",
+    "banned_phrases",
+    "name_inconsistency"
+  ],
+  "micro_f1": 0.8510725229826354,
+  "macro_f1": 0.8835936831659451,
+  "per_label_f1": {
+    "crosswalk_error": 0.9891696750902527,
+    "banned_phrases": 1.0,
+    "name_inconsistency": 0.6616113744075829
+  }
+}

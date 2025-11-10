@@ -225,8 +225,8 @@ def main():
                         help="Learning rate for DistilBERT layers (default: 5e-5; classifier head uses 5x)")
     parser.add_argument("--max-epochs", type=int, default=20,
                         help="Maximum number of epochs (default: 20)")
-    parser.add_argument("--early-stopping-patience", type=int, default=7,
-                        help="Early stopping patience (default: 7)")
+    parser.add_argument("--early-stopping-patience", type=int, default=3,
+                        help="Early stopping patience (default: 3)")
     parser.add_argument("--max-length", type=int, default=512,
                         help="Maximum sequence length (default: 512)")
     parser.add_argument("--grad-clip", type=float, default=1.0,
@@ -239,6 +239,9 @@ def main():
     parser.add_argument("--force-cpu", action="store_true",
                         help="Force CPU usage for comparison")
     args = parser.parse_args()
+    if args.early_stopping_patience > 3:
+        print("⚠️  Capping early stopping patience to 3 to avoid prolonged plateaus.")
+        args.early_stopping_patience = 3
     
     # Sanity check: dataset exists
     if not DATA_PATH.exists():
@@ -411,8 +414,8 @@ def main():
     perfect_f1_counter = 0  # Track consecutive epochs with F1=1.0
     use_autocast = not args.no_autocast
 
-    # Model save path - save directly to huggingface_space
-    model_save_path = Path(__file__).resolve().parents[2] / "huggingface_space" / "model" / "distilbert"
+    # Model save path - save directly to backend/app/models
+    model_save_path = Path(__file__).resolve().parents[2] / "backend" / "app" / "models" / "distilbert"
     model_save_path.mkdir(parents=True, exist_ok=True)
     print(f"\nModel will be saved to: {model_save_path}")
     

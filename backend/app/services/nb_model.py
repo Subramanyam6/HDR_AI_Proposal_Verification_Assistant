@@ -86,6 +86,12 @@ class NaiveBayesModelService:
 
         try:
             tokens = self._tokenize(text)
+
+            # Convert token list to bag-of-words dictionary for river-ml
+            token_counts: Dict[str, int] = {}
+            for token in tokens:
+                token_counts[token] = token_counts.get(token, 0) + 1
+
             results: Dict[str, bool] = {}
 
             for label in self.labels:
@@ -95,11 +101,12 @@ class NaiveBayesModelService:
                 if model is None:
                     results[display_label] = False
                 else:
-                    # Assume model has predict_one method (river-ml style)
+                    # River-ml predict_one expects dictionary of features
                     try:
-                        results[display_label] = bool(model.predict_one(tokens))
-                    except:
-                        # Fallback if predict_one doesn't exist
+                        results[display_label] = bool(model.predict_one(token_counts))
+                    except Exception as ex:
+                        # Fallback if predict_one fails
+                        print(f"⚠ NB model prediction failed for {label}: {ex}")
                         results[display_label] = False
 
             return results

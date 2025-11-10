@@ -174,8 +174,8 @@ def main() -> None:
         print(f"    PRED: {pred_dict}")
         print()
 
-    # Save model to huggingface_space/model/
-    model_dir = Path(__file__).resolve().parents[2] / "huggingface_space" / "model"
+    # Save model directly into backend/app/models for immediate use
+    model_dir = Path(__file__).resolve().parents[2] / "backend" / "app" / "models"
     model_dir.mkdir(parents=True, exist_ok=True)
 
     print("\n" + "="*70)

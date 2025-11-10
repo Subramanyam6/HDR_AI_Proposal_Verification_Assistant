@@ -9,7 +9,7 @@ Baseline text-only multi-label classifier (pure Python, no external deps).
   * name_inconsistency -> not labels.name_consistency_flag
 
 Outputs per-label precision/recall/F1/accuracy, micro/macro F1, and a few sample predictions.
-Saves trained Naive Bayes models + metadata under huggingface_space/model/nb_baseline.
+Saves trained Naive Bayes models + metadata under backend/app/models/nb_baseline for immediate use.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from typing import Callable, Dict, List, Sequence, Tuple
 
 
 DATA_PATH = Path(__file__).resolve().parents[1] / "dataset" / "synthetic_proposals.json"
-MODEL_BASE_DIR = Path(__file__).resolve().parents[2] / "huggingface_space" / "model" / "nb_baseline"
+MODEL_BASE_DIR = Path(__file__).resolve().parents[2] / "backend" / "app" / "models" / "nb_baseline"
 TOKEN_RE = re.compile(r"[A-Za-z0-9_]+")
 
 
@@ -181,7 +181,7 @@ def main() -> None:
     print("\nSaving Naive Bayes baseline models...")
     saved_paths = []
     for name, clf in models.items():
-        path = MODEL_BASE_DIR / f"{name}_nb.pkl"
+        path = MODEL_BASE_DIR / f"{name}.pkl"
         with path.open("wb") as f:
             pickle.dump(clf, f)
         saved_paths.append(str(path))

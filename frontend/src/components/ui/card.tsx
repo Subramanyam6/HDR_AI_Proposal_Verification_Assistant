@@ -11,6 +11,7 @@ const Card = React.forwardRef<
       "border-2 border-black bg-card text-card-foreground shadow-brutal",
       className
     )}
+    style={{ overflow: 'visible' }}
     {...props}
   />
 ))
@@ -44,7 +45,7 @@ const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  <div ref={ref} className={cn("p-6 pt-0", className)} style={{ overflow: 'visible' }} {...props} />
 ))
 CardContent.displayName = "CardContent"
 

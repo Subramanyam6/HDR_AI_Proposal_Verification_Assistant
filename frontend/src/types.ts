@@ -1,7 +1,7 @@
 export interface ModelResult {
-  crosswalk_error: boolean;
-  banned_phrases: boolean;
-  name_inconsistency: boolean;
+  "Crosswalk Error": boolean;
+  "Banned Phrases": boolean;
+  "Name Inconsistency": boolean;
 }
 
 export interface RuleResult {
@@ -15,7 +15,7 @@ export interface VerificationResponse {
     naive_bayes: ModelResult;
   };
   rule_results: RuleResult;
-  suggestions: string;
+  suggestions: string | null;
 }
 
 export interface SampleLibrary {

@@ -107,7 +107,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--batch-size",
         type=str,
-        default="6",
+        default="4",
         help="Batch size for the transformer training step.",
     )
     parser.add_argument(
@@ -125,7 +125,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--early-stopping",
         type=str,
-        default="5",
+        default="3",
         help="Early stopping patience for the transformer training step.",
     )
     parser.add_argument(

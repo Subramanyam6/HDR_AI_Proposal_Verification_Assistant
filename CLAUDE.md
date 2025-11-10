@@ -399,3 +399,90 @@ print(f"MPS built: {torch.backends.mps.is_built()}")
 - Detects mismatched dates in letter vs schedule
 - Flag: `date_consistency_flag = False`
 - **Warning**: Transformer model shows ~0.0 probability (needs retraining)
+
+## React + FastAPI Migration
+
+The application has been migrated from Gradio to a modern React + FastAPI stack with Docker deployment.
+
+### Architecture
+
+**Frontend (React + TypeScript + Vite)**
+- Location: `frontend/`
+- Stack: React 19, TypeScript, Tailwind CSS v4, Zustand state management
+- UI Framework: shadcn/ui with neo-brutalist design (thick borders, OKLCH colors)
+- Icons: lucide-react
+- Build: Vite with multi-stage Docker build
+
+**Backend (FastAPI + Python)**
+- Location: `backend/`
+- Stack: FastAPI, Pydantic settings, uvicorn
+- Models: DistilBERT (transformer), TF-IDF + Logistic Regression, Naive Bayes
+- RAG Suggestions: OpenAI GPT-5 API integration
+
+**Deployment**
+- Docker Compose with nginx reverse proxy
+- Frontend served via nginx on port 80
+- Backend API on `/api` prefix
+- Health checks: `/health`, `/readiness`
+
+### Recent UI Implementation Changes (2025)
+
+**1. Sample Text Loading UX (App.tsx + useAppStore.ts)**
+- **Change**: Replaced red border effect with spinning reload icon and 1-second delay
+- **Implementation**:
+  - Added `isSampleLoading` state to Zustand store
+  - Sample selection triggers 1-second setTimeout before loading text
+  - Displays spinning RotateCw icon (lucide-react) during load
+  - Textarea and dropdown disabled during loading
+  - Removed previous CSS animation (`bg-primary/10 border-primary scale-[1.01]`)
+- **Files Modified**:
+  - `frontend/src/store/useAppStore.ts` (lines 12, 32, 46-70, 125)
+  - `frontend/src/App.tsx` (lines 1-6, 16, 96-123)
+
+**2. GPT-5 API Model Configuration (rag_service.py)**
+- **Model**: OpenAI GPT-5 (released August 2025)
+- **Variants**: gpt-5, gpt-5-mini, gpt-5-nano (with reasoning levels: minimal, low, medium, high)
+- **Implementation**:
+  - Primary model: "gpt-5" with `max_completion_tokens=1000`
+  - Fallback model: "gpt-4o" with `max_tokens=1000, temperature=0.3`
+  - Added detailed error logging to diagnose API access issues
+- **Common Issues**:
+  - API key tier/quota limitations (not all accounts have GPT-5 access)
+  - Check Docker logs for "❌ GPT-5 ERROR" messages to diagnose
+- **Files Modified**:
+  - `backend/app/services/rag_service.py` (lines 84-130)
+- **Note**: The footer text in `frontend/src/App.tsx` (line 243) displays "GPT-5" but actual model usage depends on API access
+
+### Development Guidelines
+
+**Documentation Policy**
+- Do NOT create test files, README files, or additional documentation without explicit request
+- Implementation notes go in CLAUDE.md (this file)
+- This file serves as the primary memory/context for Claude Code
+
+**Testing**
+- Test sample text loading: Select dropdown → observe 1s delay → spinning icon → text appears
+- Test GPT-5: Check Docker logs for model attempt messages (`🔍 Attempting to use model: gpt-5`)
+- If GPT-5 fails, logs will show detailed error before falling back to gpt-4o
+
+### File Locations (React Stack)
+
+**Frontend**
+- `frontend/src/App.tsx` - Main UI component (247 LOC)
+- `frontend/src/store/useAppStore.ts` - Zustand state management (128 LOC)
+- `frontend/src/types.ts` - TypeScript interfaces
+- `frontend/tailwind.config.ts` - Tailwind v4 config (OKLCH color system)
+- `frontend/postcss.config.js` - PostCSS with @tailwindcss/postcss plugin
+
+**Backend**
+- `backend/app/main.py` - FastAPI application entry point
+- `backend/app/config.py` - Pydantic settings with CORS configuration
+- `backend/app/services/rag_service.py` - GPT-5 RAG suggestions (127 LOC)
+- `backend/app/services/transformer_model.py` - DistilBERT service
+- `backend/app/services/tfidf_model.py` - TF-IDF model (99 LOC)
+- `backend/app/services/nb_model.py` - Naive Bayes model (121 LOC)
+
+**Docker**
+- `docker-compose.yml` - Multi-container orchestration
+- `frontend/Dockerfile` - Multi-stage Node.js → nginx
+- `backend/Dockerfile` - Python FastAPI with model files

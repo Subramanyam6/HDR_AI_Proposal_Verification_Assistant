@@ -72,14 +72,20 @@ class TFIDFModelService:
             # Vectorize input
             features = self.vectorizer.transform([text])
 
-            # Get probabilities
+            # Get probabilities - OneVsRestClassifier returns shape (n_samples, n_classes)
             probabilities = self.classifier.predict_proba(features)
+
+            # Ensure we have a 2D array
+            if len(probabilities.shape) == 1:
+                probabilities = probabilities.reshape(1, -1)
 
             # Apply threshold
             results = {}
             for idx, label in enumerate(self.labels):
                 display_label = self.label_display.get(label, label)
-                results[display_label] = bool(probabilities[0][idx] >= settings.tfidf_threshold)
+                # Get probability for this label (positive class)
+                prob = probabilities[0, idx] if idx < probabilities.shape[1] else 0.0
+                results[display_label] = bool(prob >= settings.tfidf_threshold)
 
             return results
 

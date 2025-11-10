@@ -9,7 +9,7 @@ spec = importlib.util.spec_from_file_location("transformer_trainer", MODULE_PATH
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
-MODEL_DIR = Path(__file__).resolve().parents[2] / "huggingface_space" / "model" / "distilbert"
+MODEL_DIR = Path(__file__).resolve().parents[2] / "backend" / "app" / "models" / "distilbert"
 
 
 def test_dataset_splits_present():

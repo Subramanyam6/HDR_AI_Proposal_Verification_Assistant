@@ -1,0 +1,38 @@
+{
+  "timestamp_utc": "2025-11-10T10:26:33.337665+00:00",
+  "dataset_path": "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/synthetic_proposals/dataset/synthetic_proposals.json",
+  "train_size": 14400,
+  "dev_size": 2800,
+  "targets": [
+    "crosswalk_error",
+    "banned_phrases",
+    "name_inconsistency"
+  ],
+  "per_label_metrics": {
+    "crosswalk_error": {
+      "precision": 0.7125416204217536,
+      "recall": 0.9171428571428571,
+      "f1": 0.8019987507807621,
+      "acc": 0.8867857142857143
+    },
+    "banned_phrases": {
+      "precision": 0.8870558375634517,
+      "recall": 0.9985714285714286,
+      "f1": 0.939516129032258,
+      "acc": 0.9678571428571429
+    },
+    "name_inconsistency": {
+      "precision": 0.9809885931558935,
+      "recall": 0.7371428571428571,
+      "f1": 0.8417618270799346,
+      "acc": 0.9307142857142857
+    }
+  },
+  "micro_f1": 0.8607184241019699,
+  "macro_f1": 0.8610922356309849,
+  "model_files": [
+    "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/backend/app/models/nb_baseline/crosswalk_error.pkl",
+    "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/backend/app/models/nb_baseline/banned_phrases.pkl",
+    "/Users/subramanyam6666/iCloud Drive (Archive)/Documents/Learning_SoftwareEngineering/HDR_AI_Proposal_Verification_Assistant/backend/app/models/nb_baseline/name_inconsistency.pkl"
+  ]
+}

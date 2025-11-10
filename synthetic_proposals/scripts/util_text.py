@@ -11,14 +11,16 @@ from typing import Any, Dict, Iterable, List, Sequence
 
 WHITESPACE_RE = re.compile(r"\s+")
 SECTION_WORD_LIMITS = {
-    "letter": 120,
-    "qualifications": 140,
-    "staffing": 120,
-    "subconsultants": 80,
-    "work_approach": 140,
-    "schedule": 120,
-    "references": 60,
+    "letter": 70,
+    "qualifications": 90,
+    "staffing": 80,
+    "subconsultants": 60,
+    "work_approach": 120,
+    "schedule": 80,
+    "references": 50,
 }
+MAX_TOTAL_WORDS = 512
+MAX_TOTAL_WORDS_WITH_TOLERANCE = int(MAX_TOTAL_WORDS * 1.05)
 
 def _truncate_words(text: str, max_words: int) -> str:
     words = normalize_text(text).split(" ")
@@ -174,16 +176,24 @@ def gather_section_text(proposal: Dict[str, Any]) -> Dict[str, str]:
 def generate_chunks(proposal: Dict[str, Any], *, max_words: int = 180, overlap: int = 25) -> List[Dict[str, Any]]:
     """
     Produce embedding-ready chunks derived purely from structured YAML content.
+    Total words are capped to ~512 (5% tolerance) to reduce transformer truncation.
     """
     sections = gather_section_text(proposal)
     output: List[Dict[str, Any]] = []
     chunk_lengths: List[int] = []
+    total_words = 0
     for section, text in sections.items():
         splits = chunk_text(text, max_words=max_words, overlap=overlap)
         for chunk in splits:
             chunk_words = len(chunk.split())
-            chunk_lengths.append(chunk_words)
+            if total_words >= MAX_TOTAL_WORDS and total_words + chunk_words > MAX_TOTAL_WORDS_WITH_TOLERANCE:
+                break
             output.append({"section": section, "text": chunk})
+            chunk_lengths.append(chunk_words)
+            total_words += chunk_words
+        else:
+            continue
+        break
 
     if output:
         page_hints = estimate_page_hints(chunk_lengths)
